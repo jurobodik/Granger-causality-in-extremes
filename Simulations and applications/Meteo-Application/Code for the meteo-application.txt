@@ -1,0 +1,399 @@
+#Meteorological application for the paper 'Granger causality in tail'
+
+#main function needed to be uploaded for this application is 'Extreme_causality_test' - this function can be found at lines 200-500. 
+#Note that this function slightly differs from the function in the main file, as we added a few improvements after this application was finished, but the core of the function remains the same
+ 
+
+#First 30 lines is just data-upload. Note that the data can be accessed through hydrodaten.admin.ch and gate.meteoswiss.ch/idaweb after registration or by requesting the used data from the authors of Pasche et al.(2022). I do not have a permission to share them
+#lines 50 - 100 are a playground - you can try out uploading one station and conduct the test
+#lines 100-200 is just conducting the test for each station while saving the Gamma values. 
+#lines 200-500 is the function 'Extreme_causality_test' that you need to upload
+
+#The name of the meteostation is 'AIR', or 'Airolo'. 
+#Precipitation measured from 1883 to 2016
+#Latitude: 46.5327
+#Longitude: 8.6049
+#Elevation	1139
+
+library("readxl")
+library(zoo)
+
+discharges = read.csv(file = 'River_discharges_application/Discharges_summer.csv')#data about discharges at stations 1 to 68
+precipitation = read.csv(file = 'River_discharges_application/precip.csv') #Precipitation data
+meteo_stations_data= read.csv(file = 'River_discharges_application/meteo_stations_data.txt') #Other measurments such as temperature or humidity. These measurments were not from 'AIR' station but at the nearby 'LUZ' station, so there is a small data-collection discrepacy
+
+names(precipitation)[1] = 'Date'
+meteo_stations_data$Date = as.Date(meteo_stations_data$Date)
+
+
+
+read_station_precip_causes_discharge <- function(station, minimum_number_of_observation=5000){
+  
+  z1=discharges[,c(1,station+1)]; z1$Date = as.Date(z1$Date)
+  z2=precipitation[, c(1, 3 )]; z2$Date = as.Date(z2$Date)
+  
+  meteo_stations_data = meteo_stations_data[,colSums(!is.na(meteo_stations_data))>minimum_number_of_observation]
+  meteo_stations_data$Date = meteo_stations_data$Date +2
+  
+  merged_df <- merge(z1, z2, by = "Date", all = TRUE)
+  
+  names(merged_df) = c('Date', 'discharge', 'precip')
+  merged_df <- merge(merged_df, meteo_stations_data, by = "Date", all = TRUE)
+  data = subset(na.omit(merged_df), select = -c(Name, X))
+  
+  for (j in 2:ncol(data)) {data[,j] = as.numeric(data[,j])  } 
+  return(data)
+}
+
+
+
+
+
+
+
+
+#Playground
+i=sample(size =1, 1:68) #There is 68 river discharge stations
+i=55
+data = read_station_precip_causes_discharge(i) #This is how you upload the data from station number i
+
+
+x=data$precip
+y=data$discharge
+z1=data$`Air temperature 2 m above ground; daily maximum`
+z2=data$`Relative air humidity 2 m above ground; daily maximum`
+z=data.frame(z1, z2) #You can add other covariates if you like. But we just really dont think they are significant confounders, so we ended up just using these two
+
+
+
+Extreme_causality_test(x,y,z=z, p_value_computation = FALSE)
+Extreme_causality_test(y,x,z=z, p_value_computation = FALSE)
+
+#If you want to change lag or change the adjustment for confounding or consider also instantenius causality, change some hyperparameters
+lag_future=1
+lag_past = 0
+nu_x = 0.3
+q_y = 0.2
+q_z = 0.1
+instant=FALSE
+
+Extreme_causality_test(x,y,z=z,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, lag_past = lag_past,instant=instant, p_value_computation = FALSE)
+Extreme_causality_test(y,x,z=z,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, lag_past = lag_past,instant=instant, p_value_computation = FALSE)
+
+Extreme_causality_test(x, y,z=z,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, lag_past = lag_past,instant=instant, p_value_computation = TRUE)
+Extreme_causality_test(y, x,z=z,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, lag_past = lag_past,instant=instant, p_value_computation = TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+result_X_to_Y = list()
+result_Y_to_X = list()
+
+for (i in 1:68) {
+  
+  data = read_station_precip_causes_discharge(i) 
+  
+  x=data$precip
+  y=data$discharge
+  z1=data$`Air temperature 2 m above ground; daily maximum`
+  z2=data$`Relative air humidity 2 m above ground; daily maximum`
+  z=data.frame(z1, z2)
+  
+  
+  result_X_to_Y = append(result_X_to_Y,Extreme_causality_test(x,y,z, p_value_computation = TRUE)$p_value_tail)
+  result_Y_to_X = append(result_Y_to_X,Extreme_causality_test(y,x,z, p_value_computation = TRUE)$p_value_tail)
+  
+  cat(i, ' = ', result_X_to_Y[[i]], '\n')
+}
+
+
+
+#How many times we obtained the correct output?
+(sum(result_X_to_Y<=0.05)  + sum(result_Y_to_X>=0.05))/136
+
+#Which stations gave the wrong result?
+c(which(result_X_to_Y<=0.05) , which(result_Y_to_X>=0.05))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Extreme_causality_test = function(x, y, z=NULL, lag_future=1, lag_past=0, q_y = 0.2, q_z = 0.1, instant=FALSE, p_value_computation = FALSE, bootstrap_repetitions=50, q_F=0.5, nu_x = 0.3){
+  
+  n = length(x)
+  z=data.frame(z)
+  d = ncol(z)
+  tau_y = q_y * n; tau_z = q_z * n
+  
+  
+  
+  F_u = function(imput, output){ifelse(output < quantile(imput, q_F), 0, (ecdf(imput)(output)))}
+  #F_u = function(imput, output){ifelse(output < quantile(imput, q_F), 0, 1)}
+  #F_u = function(imput, output){ifelse(output < quantile(imput, q_F), 0, 1)}
+  #F_u = function(imput, output){return(ecdf(imput)(output))}
+  
+  
+  CTC_baseline = function(x, y, z=NULL, lag_future=lag_future, lag_past = lag_past, tau_y = tau_y, tau_z = tau_z, instant=instant){
+    
+    run_future_max <- function(x, k=3, instant=TRUE){ #instant= do we want to consider Y_0?
+      if (instant==TRUE) {q=0}else{q=1}
+      
+      n=length(x);  y=c()  
+      for (i in 1:n) {y=rbind(y, max(x[(min(n,i+q)):(min(n,i+k))]))}
+      
+      return(y)
+    }
+    
+    x_to_y_masking= c()
+    for (i in 1:(lag_past+1)) { yy = c( rep(0, i-1), y)
+    x_to_y_masking= c(x_to_y_masking,  which(yy>sort(y)[(n-tau_y)])) 
+    
+    if(d>0){ for (j in 1:d){  
+      zz = c( rep(0, i-1), z[,j])
+      x_to_y_masking= c(x_to_y_masking,  which(zz>sort(z[,j])[(n-tau_z)]))}
+    }
+    x_to_y_masking = unique(x_to_y_masking)
+    }
+    
+    future_y = run_future_max(y, lag_future, instant = instant)
+    #baseline1 =mean(F_u(y[-x_to_y_masking], future_y[-x_to_y_masking]))
+    baseline2=mean(F_u(y, future_y[-x_to_y_masking]))
+    
+    return( baseline2  )
+  }
+  
+  
+  CTC_masked = function(x, y, z=NULL, lag_future, lag_past, tau_y, tau_z, instant){
+    
+    run_future_max <- function(x, k=3, instant=TRUE){ #instant= do we want to consider Y_0?
+      if (instant==TRUE) {q=0}else{q=1}
+      
+      n=length(x);  y=c()  
+      for (i in 1:n) {y=rbind(y, max(x[(min(n,i+q)):(min(n,i+k))]))}
+      
+      return(y)
+    }
+    
+    
+    x_to_y_masking= c()
+    for (i in 1:(lag_past+1)) { yy = c( rep(0, i-1), y)
+    x_to_y_masking= c(x_to_y_masking,  which(yy>sort(y)[(n-tau_y)])) 
+    
+    if(d>0){ for (j in 1:d){  
+      zz = c( rep(0, i-1), z[,j])
+      x_to_y_masking= c(x_to_y_masking,  which(zz>sort(z[,j])[(n-tau_z)]))}
+    }
+    x_to_y_masking = unique(x_to_y_masking)
+    }
+    
+    n=length(x); k = round((n-length(x_to_y_masking))^(nu_x) )
+    
+    new_x = x[-x_to_y_masking]
+    
+    future_y = run_future_max(y, lag_future, instant = instant)
+    
+    future_y = future_y[-x_to_y_masking]
+    
+    top_x=which(new_x>=sort(new_x)[length(new_x)-k+1])
+    
+    
+    #return( mean(F_u(y[-x_to_y_masking], future_y[top_x]))  )
+    return( mean(F_u(y, future_y[top_x]))  )
+    
+  }
+  
+  
+  
+  
+  switcher_for_test <- function(x, number_of_blocks=15){ #resampling block-wise
+    
+    n=nrow(x)
+    m=n%/%number_of_blocks #length of one block
+    
+    y=c()
+    for (i in 1:number_of_blocks) {#choose one random block with the beginning uniformly chosen from 1:(n-m)
+      kocka=sample(1:(n-m), 1)
+      for (j in 1:m) {
+        y=rbind(y,x[kocka+j,])  #Add this block to our resampled series
+      }
+      
+    }
+    #what to do with the ending if it is not divisible? we just add one random block with smaller length to obtain times eris with length $n$ again
+    if (ncol(x)==1) {  #Code for one-dimensional time series
+      if(n%%number_of_blocks!=0){y=c(y,x[((number_of_blocks*m+1):n),])}} 
+    else{
+      if(n%%number_of_blocks!=0){
+        k=n-number_of_blocks*m
+        kocka=sample(1:(n-k), 1)
+        
+        for (j in 1:k) {
+          y=rbind(y,x[kocka+j,])  
+        }}
+    }
+    return(data.frame(y))
+  }
+  
+  
+  
+  baseline = CTC_baseline(x, y, z=z, lag_future=lag_future, lag_past = lag_past, tau_y = tau_y, tau_z = tau_z, instant=instant)
+  CTC = CTC_masked(x,y,z,lag_future=lag_future,lag_past = lag_past, tau_y = tau_y, tau_z = tau_z, instant=instant)
+  
+  
+  if(p_value_computation == FALSE){
+    if(CTC<=(1+baseline)/2) return(data.frame(output = 'No causality', CTC=CTC , baseline = baseline))
+    if(CTC>(1+baseline)/2) return(data.frame(output = 'Evidence of causality', CTC=CTC , baseline = baseline))
+  }
+  
+  #if(all(z == FALSE)) {
+  #  x_to_y_masking= .Machine$integer.max
+  #  for (i in 1:(lag_past+1)) { yy = c( rep(0, i-1), y)
+  #  x_to_y_masking= c(x_to_y_masking,  which(yy>sort(y)[(n-tau_y)])) }
+  #  x_to_y_masking = unique(x_to_y_masking)}
+  
+  
+  #if(!all(z == FALSE)) {x_to_y_masking= .Machine$integer.max
+  #for (i in 1:(lag_past+1)) { yy = c( rep(0, i-1), y);zz = c( rep(0, i-1), z)
+  #x_to_y_masking= c(x_to_y_masking,  which(yy>sort(y)[(n-tau_y)]))
+  #x_to_y_masking= c(x_to_y_masking,  which(zz>sort(z)[(n-tau_z)]))}
+  #x_to_y_masking = unique(x_to_y_masking)
+  #}
+  
+  
+  if(CTC<=baseline){result = 0; result2=1} 
+  if(CTC>baseline){
+    result = c()
+    result2 = c()
+    # for (i in 1:bootstrap_repetitions) {
+    #   new_time_series=switcher_for_test(data.frame(x[-x_to_y_masking],y[-x_to_y_masking]), number_of_blocks=number_of_blocks)
+    #   result=c(result, CTC_masked(new_time_series[,1], new_time_series[,2], lag_future=lag_future,lag_past = 0, tau_y = 0, instant=instant ) )
+    # }
+    
+    for (i in 1:bootstrap_repetitions) {
+      new_time_series=switcher_for_test(data.frame(x,y,z), number_of_blocks=floor(sqrt(length(x))))
+      tilde_x = new_time_series[,1] ;  tilde_y =new_time_series[,2] ; if(d==0){tilde_z = NULL};  if(d>0){tilde_z =  data.frame(new_time_series[,3:(d+2)])};  
+      result  = c(result, CTC_masked(x=tilde_x, y=tilde_y, z=tilde_z, lag_future=lag_future,lag_past = lag_past, tau_y = tau_y, tau_z = tau_z, instant=instant ) )
+      result2 = c(result2, CTC_baseline(tilde_x, tilde_y, tilde_z, lag_future=lag_future,lag_past = lag_past, tau_y = tau_y, tau_z = tau_z, instant=instant ) )
+    }}
+  
+  
+  output = 'No causality';  if(CTC>(1+baseline)/2)   output = 'Evidence of causality'; 
+  return( data.frame( output=output, p_value_tail = mean(result <=  result2) , p_value_extreme = mean(result <=  (1+3*result2)/4), CTC=CTC , baseline = baseline))
+}
+
+Extreme_causality_full_graph_estimate = function(w, lag_future=1, lag_past=0, q_y = 0.25, q_z = 0.1, instant=FALSE, p_value_computation = FALSE, bootstrap_repetitions=50, q_F=0.5, nu_x = 0.3){
+  
+  m=ncol(w)
+  
+  find_parents = function(G, vertex){
+    result = c()
+    for (i in 1:nrow(G)) { 
+      if(G[i,2]==vertex){result = c(result, G[i,1])}
+    }
+    return(result)
+  }
+  
+  #Step 1: Pairwise    
+  G = c()  
+  for (i in 1:m) {
+    for (j in (1:m)[-i]) {
+      x=w[,i];y=w[,j]
+      CTC=Extreme_causality_test(x,y,z=NULL,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, lag_past = lag_past, p_value_computation = FALSE, q_F=q_F)
+      if(CTC$output =='Evidence of causality') G=rbind(G, c(i,j))    
+    }  
+  }
+  
+  #Step 2: Multivariate  
+  if( all(G == FALSE)  ){return('Result: Empty graph')}
+  if( !all(G == FALSE)  ){ #if G is non-empty
+    indexes_to_erase = .Machine$integer.max
+    for (i in 1:nrow(G)) {
+      x = w[,G[i,1]]
+      y = w[,G[i,2]]
+      
+      z_indexes=intersect(find_parents(G, G[i,1]), find_parents(G, G[i,2]))  
+      if(all(z_indexes == FALSE)) {z=NULL}  
+      if(!all(z_indexes == FALSE)) {z=data.frame(w[,z_indexes])}  
+      
+      CTC=Extreme_causality_test(x,y,z=z,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, lag_past = lag_past, p_value_computation = FALSE, q_F=q_F)
+      if(CTC$output == 'No causality'){ indexes_to_erase = c(indexes_to_erase, i)}
+    }}
+  
+  return(G[-indexes_to_erase,])  
+}
+
+
+
+
+
+
+
+
