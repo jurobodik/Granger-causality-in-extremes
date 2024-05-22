@@ -17,7 +17,7 @@ This function tests whether the tails/extremes of time series `X` cause those of
 - **p_value_computation**: If `p_value_computation=FALSE` it returns the output based on (fast) Algorithm 1.  If `p_value_computation=TRUE` it computes the p-value for the hypothesis $H_0: X \text{ does not cause } Y \text{ in extremes given } Z$. If `p_value < 0.05`, we conclude that $X$ causes $Y$ given $Z$. 
 - **bootstrap_repetitions**: The number of bootstrap repetitions for p-value computation. More repetitions yield more precise p-values but require longer computation time.
 - **both_tails**: Set to TRUE to consider both large and extremely negative values. For example, in GARCH models, both tails are of interest, while in VAR models, only large values might be relevant.
-- **nu_x**: The coefficient $\tau_X$ or $k_n$ in the manuscript, defined as $k = \lfloor n^{\nu_x} \rfloor$. If strong hidden confounding is expected, set $\nu_x$ to 0.4 or 0.5.
+- **nu_x**: The coefficient $\tau_X$ or $k_n$ in the manuscript, defined as $k_n = \lfloor n^{\nu_x} \rfloor$. If strong hidden confounding is expected, set $\nu_x$ to 0.4 or 0.5.
 - **q_y**: The coefficient $\tau_y = q_y \times n$, describing the conditioning on $Y_t$. For large auto-correlation in $Y$, set $q_y$ to 0.1 or less. Note that in the manuscript, $q_y$ is defined as $1 - q_y$.
 - **q_z**: The coefficient $\tau_z = q_z \times n$, describing the conditioning on $Z_t$. This is irrelevant if $Z$ is NULL. For strong confounding effects, set $q_z$ to 0.2 or 0.3.
 - **lag_past**: The lag from $Z$ to $(X, Y)$. If the common cause has different lags to $X$ and $Y$, it may cause spurious causality between $X$ and $Y$. Ensure `lag_past` is larger than this lag.
