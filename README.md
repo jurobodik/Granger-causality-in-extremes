@@ -20,7 +20,7 @@ This function tests whether the tails/extremes of time series `X` cause those of
 - **both_tails**: Set to TRUE to consider both large and extremely negative values. For example, in GARCH models, both tails are of interest, while in VAR models, only large values might be relevant.
 - **nu_x**: The coefficient $\tau_X$ or $k_n$ in the manuscript, defined as $k_n = \lfloor n^{\nu_x} \rfloor$. If strong hidden confounding is expected, set $\nu_x$ to 0.4 or 0.5.
 - **q_y**: The coefficient $\tau_y = q_y \times n$, describing the conditioning on $Y_t$. For large auto-correlation in $Y$, set $q_y$ to 0.1 or less. Note that in the manuscript, $q_y$ is defined as $1 - q_y$.
-- **q_z**: The coefficient $\tau_z = q_z \times n$, describing the conditioning on $Z_t$. This is irrelevant if $Z$ is NULL. For strong confounding effects, set $q_z$ to 0.2 or 0.3.
+- **q_z**: The coefficient $\tau_z = q_z \times n$, describing the conditioning on $Z_t$. This is irrelevant if $Z$ is NULL. For strong confounding effects, set $q_z$ to 0.2 or 0.3. Note that in the manuscript, $q_z$ is defined as $1 - q_z$.
 - **lag_past**: The lag from $Z$ to $(X, Y)$. If the common cause has different lags to $X$ and $Y$, it may cause spurious causality between $X$ and $Y$. Ensure `lag_past` is larger than this lag.
 
 ### Function Outputs:
