@@ -14,7 +14,7 @@ This function tests whether the tails/extremes of time series `X` cause those of
 - **y**: A numeric vector representing the second time series (potential effect).
 - **z**: A data.frame of potential confounders. Set to NULL if there are no confounders.
 - **lag_future**: The time delay for the effect from `x` to `y`. This is the coefficient `p` in Appendix A of the manuscript.
-- **p_value_computation**: Set to TRUE to compute the p-value for the hypothesis \( H_0: X \) does not cause \( Y \) in extremes given \( Z \). If \( p\_value < 0.05 \), we conclude that \( X \) causes \( Y \) given \( Z \).
+- **p_value_computation**: Set to TRUE to compute the p-value for the hypothesis  $H_0: X$ does not cause \( Y \) in extremes given \( Z \). If \( p\_value < 0.05 \), we conclude that \( X \) causes \( Y \) given \( Z \).
 - **bootstrap_repetitions**: The number of bootstrap repetitions for p-value computation. More repetitions yield more precise p-values but require longer computation time.
 - **both_tails**: Set to TRUE to consider both large and extremely negative values. For example, in GARCH models, both tails are of interest, while in VAR models, only large values might be relevant.
 - **nu_x**: The coefficient \( \tau_X \) or \( k_n \) in the manuscript, defined as \( k = \text{floor}(n^{\nu_x}) \). If strong hidden confounding is expected, set \( \nu_x \) to 0.4 or 0.5.
