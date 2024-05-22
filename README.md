@@ -20,12 +20,12 @@ This function tests whether the tails/extremes of time series `X` cause those of
 - **nu_x**: The coefficient $\tau_X$ or $k_n$ in the manuscript, defined as $k = \lfloor n^{\nu_x} \rfloor$. If strong hidden confounding is expected, set $\nu_x$ to 0.4 or 0.5.
 - **q_y**: The coefficient $\tau_y = q_y \times n$, describing the conditioning on $Y_t$. For large auto-correlation in $Y$, set $q_y$ to 0.1 or less. Note that in the manuscript, $q_y$ is defined as $1 - q_y$.
 - **q_z**: The coefficient $\tau_z = q_z \times n$, describing the conditioning on $Z_t$. This is irrelevant if $Z$ is NULL. For strong confounding effects, set $q_z$ to 0.2 or 0.3.
-- **lag_past**: The lag from $Z$ to $(X, Y)$. If the common cause has different lags to $X$ and $Y$, it may cause spurious causality between $X$ and $Y$. Ensure $lag_past$ is larger than this lag.
+- **lag_past**: The lag from $Z$ to $(X, Y)$. If the common cause has different lags to $X$ and $Y$, it may cause spurious causality between $X$ and $Y$. Ensure `lag_past` is larger than this lag.
 
 ### Function Outputs:
 - **output**: Either 'Evidence of causality' or 'No causality' based on Algorithm 1 from the manuscript.
 - **p_value_tail**: This is not shown if `p_value_computation` is FALSE. Rejection indicates evidence of causality in the tail. It corresponds to the p-value for the hypothesis $H_0: X \text{ does not cause } Y \text{ in the tail given } Z$, based on bootstrapping. Often `p-value = 1` which means that $\text{CTC} < \text{baseline}$.
-- **p_value_extreme**: This is not shown if `p_value_computation` is FALSE. Rejection indicates evidence of causality in extremes. It corresponds to the p-value for the hypothesis $\hat{\Gamma}_{X \rightarrow Y | Z}< (1 +3 \hat{\Gamma}^{baseline})/4.
+- **p_value_extreme**: This is not shown if `p_value_computation` is FALSE. Rejection indicates evidence of causality in extremes. It corresponds to the p-value for the hypothesis $\hat{\Gamma}< (1 +3 \hat{\Gamma}^{baseline})/4$.
 - **CTC**: The coefficient $\hat{\Gamma}_{X \rightarrow Y | Z}$.
 - **baseline**: The baseline coefficient $\hat{\Gamma}^{\text{baseline}}_{X \rightarrow Y | Z}$.
 
@@ -44,7 +44,7 @@ This function estimates the causal graph (path diagram) between a set of time se
 
 ### Function Outputs:
 - **G$G**: A graph defined by its edges. Each row corresponds to an edge from the first column pointing to the second column. Use `graph <- graph_from_edgelist(G$G)` from the `igraph` library to obtain the graph environment.
-- **G$weights**: Weights corresponding to each edge, representing how close the coefficient $\hat{\Gamma}_{X \rightarrow Y | Z}$ is to 1. If $\hat{\Gamma}_{X \rightarrow Y | Z} = 1$, the weight is 1. The weight is 0 if $\hat{\Gamma}_{X \rightarrow Y | Z} = \left(1 + \hat{\Gamma}^{\text{baseline}}_{X \rightarrow Y | Z}\right) / 2$.
+- **G$weights**: Weights corresponding to each edge, representing how close the coefficient $\hat{\Gamma}$ is to 1. If $\hat{\Gamma}_{X \rightarrow Y | Z} = 1$, the weight is 1. The weight is 0 if $\hat{\Gamma} = \left(1 + \hat{\Gamma}^{\text{baseline}}\right) / 2$.
 
 ## Example Usage
 
@@ -80,7 +80,7 @@ Extreme_causality_test(y, x, z, lag_future = 2, p_value_computation = FALSE)
 # Estimating the full causality graph
 G <- Extreme_causality_full_graph_estimate(w, lag_future = 2)  # Try it out also with lag = 1. You will see that the lagged edges disappear
 
-# Visualizing the graph using igraph
+# Visualizing the graph using igraph package
 graph <- graph_from_edgelist(G$G)
 V(graph)$name <- names(w)
 plot(graph, layout = layout_nicely(graph), vertex.label = V(graph)$name)
