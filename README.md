@@ -24,8 +24,8 @@ This function tests whether the tails/extremes of time series `X` cause those of
 
 ### Function Outputs:
 - **output**: Either 'Evidence of causality' or 'No causality' based on Algorithm 1 from the manuscript.
-- **p_value_tail**: This is not shown if `p_value_computation` is FALSE. Rejection indicates evidence of causality in the tail. It corresponds to the p-value for the hypothesis $H_0: X \text{ does not cause } Y \text{ in the tail given } Z$, based on bootstrapping. Often $p\_value = 1$ which means that $\text{CTC} < \text{baseline}$.
-- **p_value_extreme**: This is not shown if `p_value_computation` is FALSE. Rejection indicates evidence of causality in extremes. It corresponds to the p-value for the hypothesis $\hat{\Gamma}_{X \rightarrow Y | Z} < \left(1 + 3 \times \hat{\Gamma}^{\text{baseline}}_{X \rightarrow Y | Z}\right) / 4$.
+- **p_value_tail**: This is not shown if `p_value_computation` is FALSE. Rejection indicates evidence of causality in the tail. It corresponds to the p-value for the hypothesis $H_0: X \text{ does not cause } Y \text{ in the tail given } Z$, based on bootstrapping. Often `p-value = 1` which means that $\text{CTC} < \text{baseline}$.
+- **p_value_extreme**: This is not shown if `p_value_computation` is FALSE. Rejection indicates evidence of causality in extremes. It corresponds to the p-value for the hypothesis $\hat{\Gamma}_{X \rightarrow Y | Z} $ < $(1 + 3 \times \hat{\Gamma}^{\text{baseline}}_{X \rightarrow Y | Z} ) / 4$.
 - **CTC**: The coefficient $\hat{\Gamma}_{X \rightarrow Y | Z}$.
 - **baseline**: The baseline coefficient $\hat{\Gamma}^{\text{baseline}}_{X \rightarrow Y | Z}$.
 
