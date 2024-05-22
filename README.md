@@ -4,7 +4,7 @@ You can find the manuscript called 'Granger Causality in Extremes' at ARXIV!
 For any questions or error reports, please contact [juraj.bodik@unil.ch](mailto:juraj.bodik@unil.ch).
 
 ## Overview
-This package contains two main functions: `Extreme_causality_test` and `Extreme_causality_full_graph_estimate`. Both functions are defined in the file 'Main functions', without any packages required.
+This package contains two main functions: `Extreme_causality_test` and `Extreme_causality_full_graph_estimate`. Both functions are defined in the file 'Main functions.R', without any packages required.
 
 ## Extreme_causality_test
 
