@@ -44,7 +44,7 @@ This function estimates the causal graph (path diagram) between a set of time se
 
 ### Function Outputs:
 - **G$G**: A graph defined by its edges. Each row corresponds to an edge from the first column pointing to the second column. Use `graph <- graph_from_edgelist(G$G)` from the `igraph` library to obtain the graph environment.
-- **G$weights**: Weights corresponding to each edge, representing how close the coefficient \( \hat{\Gamma}_{X \rightarrow Y | Z} \) is to 1. If \( \hat{\Gamma}_{X \rightarrow Y | Z} = 1 \), the weight is 1. The weight is 0 if \( \hat{\Gamma}_{X \rightarrow Y | Z} = \left(1 + \hat{\Gamma}^{\text{baseline}}_{X \rightarrow Y | Z}\right) / 2 \).
+- **G$weights**: Weights corresponding to each edge, representing how close the coefficient \( \hat{\Gamma}_{X \rightarrow Y | Z} \) is to 1. The weight is 1 if \( \hat{\Gamma}_{X \rightarrow Y | Z} = 1 \), while the weight is 0 if \( \hat{\Gamma}_{X \rightarrow Y | Z} = \left(1 + \hat{\Gamma}^{\text{baseline}}_{X \rightarrow Y | Z}\right) / 2 \).
 
 ### Example
 An example of usage is provided in the script 'Main functions' as well. 
