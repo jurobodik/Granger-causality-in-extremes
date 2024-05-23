@@ -1,6 +1,6 @@
 # Welcome to the Granger Causality in Extremes Package!
 
-You can find the manuscript called 'Granger Causality in Extremes' at ARXIV!
+You can find the manuscript called 'Granger Causality in Extremes' soon at ARXIV!
 For any questions or error reports, please contact [juraj.bodik@unil.ch](mailto:juraj.bodik@unil.ch).
 
 ## Overview
