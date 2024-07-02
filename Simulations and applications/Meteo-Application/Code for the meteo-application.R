@@ -1,4 +1,4 @@
-#Meteorological application for the paper 'Granger causality in tail'
+#Meteorological application for the paper 'Granger causality in extremes'
 
 #main function needed to be uploaded for this application is 'Extreme_causality_test' - this function can be found in the main file
 
