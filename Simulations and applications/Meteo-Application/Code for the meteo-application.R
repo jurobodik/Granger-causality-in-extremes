@@ -5,8 +5,7 @@
 
 #First 30 lines is just data-upload. Note that the data can be accessed through hydrodaten.admin.ch and gate.meteoswiss.ch/idaweb after registration or by requesting the used data from the authors of Pasche et al.(2022). I do not have a permission to share them
 #lines 50 - 100 are a playground - you can try out uploading one station and conduct the test
-#lines 100-200 is just conducting the test for each station while saving the Gamma values. 
-#lines 200-500 is the function 'Extreme_causality_test' that you need to upload
+#lines 100 - end contain the test for each station while saving the Gamma values. 
 
 #The name of the meteostation is 'AIR', or 'Airolo'. 
 #Precipitation measured from 1883 to 2016
