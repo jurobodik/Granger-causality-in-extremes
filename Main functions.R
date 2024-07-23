@@ -1,6 +1,6 @@
 # Welcome to the Granger Causality in Extremes Package!
-# For any questions or an error, contact juraj.bodik@unil.ch
-# This package contains two main functions. To use them, simply run this script as they are defined at the bottom of this page. No additional packages are required.
+# This package contains the two main R functions from our framework.
+# For any questions or an error, contact juraj.bodik@unil.ch.
 
 ######################### Extreme_causality_test ###############################################################
 # This function estimates if tails/extremes of X cause Y given Z
