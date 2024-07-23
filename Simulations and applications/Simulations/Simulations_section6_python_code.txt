@@ -2,13 +2,13 @@
 #R code can be found in the other file that deals with our method
 
 #generate_data is the function that generated the data with sample size n, number of variables p (p=m from the manuscript) and structure='VAR' or 'GARCH' and heavy_tailed=TRUE or FALSE. 
-#This function is literally just a translation of the method from R using CHATGPT. 
+#Use caution when using this script. It is, in part, just a translation of the method from R using ChatGPT. 
 #For generating random graph we use the function nx.erdos_renyi_graph(p, 1/p, directed=True) from igraph library
-#Lines 200-300 are the main part. We generate data with random graph + estimates the graph using one of the methods + compute the distance between true graph and estimated graph + repeat 100 times and return the mean of the distances
-#We maually rewrote the values for each combination of 'structure' and 'heavy_tailed' into excel (easier since we dealt with python + R results)
-#The table with final results can be found within the R code file
+#Lines 200-300 are the main part. We generate data with a random graph + estimates the graph using one of the methods + compute the distance between true graph and estimated graph + repeat 100 times and return the mean of the distances
+#We manually rewrote the values for each combination of 'structure' and 'heavy_tailed' into excel (easier since we dealt with python + R results)
+#The table with the final results can be found within the R code file
 
-#If any issue is spotted, contact juraj.bodik@unil.ch. Python is not my preffered language and many lines are just chatGPT translated from R
+#If any issue is spotted, contact juraj.bodik@unil.ch. Python is not my preferred language.
 import numpy as np
 import igraph as ig
 import random
