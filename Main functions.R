@@ -17,6 +17,7 @@
 # 'q_y'                   The coefficient tau_y = q_y * n, describing the conditioning on Y_t. For large auto-correlation in Y, set q_y to 0.1 or less. Note that in the manuscript, q_y is defined as 1 - q_y.
 # 'q_z'                   The coefficient tau_z = q_z * n, describing the conditioning on Z_t. This is irrelevant if Z is NULL. For strong confounding effects, set q_z to 0.2 or 0.3. Note that in the manuscript, q_z is defined as 1 - q_z.
 # 'lag_past'              The lag from Z to (X, Y). If the common cause has different lags to X and Y, it may cause spurious causality between X and Y. Ensure lag_past is larger than this lag.
+# 'choice_of_F'           Choice of F in the coefficient. Leave default unless you want to reproduce the results from the manuscript
 
 # Function Outputs:
 # 'output'                Either 'Evidence of causality' or 'No causality' based on Algorithm 1 from the manuscript.
@@ -77,7 +78,7 @@ library(EnvStats) # Or any other package that can generate Pareto noise
 
 
 
-Extreme_causality_test = function(x, y, z=NULL, lag_future=1, lag_past=0, nu_x = 0.3, q_y = 0.2, q_z = 0.1, both_tails = TRUE, instant=FALSE, p_value_computation = FALSE, bootstrap_repetitions=50){
+Extreme_causality_test = function(x, y, z=NULL, lag_future=1, lag_past=0, nu_x = 0.3, q_y = 0.2, q_z = 0.1, both_tails = TRUE, instant=FALSE, p_value_computation = FALSE, bootstrap_repetitions=50, choice_of_F = 0.5){
   
   n = length(x)
   z=data.frame(z)
@@ -93,10 +94,7 @@ Extreme_causality_test = function(x, y, z=NULL, lag_future=1, lag_past=0, nu_x =
   
   
 
-  #F_u = function(imput, output){return(ecdf(imput)(output))}
-  #F_u = function(imput, output){ifelse(output < quantile(imput, 0.3), 0, 1)}
-  F_u = function(imput, output){ifelse(output < quantile(imput, 0.5), 0, (ecdf(imput)(output)))} #This is the F^{truc}_Y(t) function that we opt for
-  #F_u = function(imput, output){ifelse(output < quantile(imput, 0.7), 0, 1)}
+  F_u = function(imput, output){ifelse(output < quantile(imput, choice_of_F), 0, (ecdf(imput)(output)))} #This is the F^{truc}_Y(t) function that we opt for
   
   
   CTC_baseline = function(x, y, z=NULL, lag_future=lag_future, lag_past = lag_past, tau_y = tau_y, tau_z = tau_z, instant=instant){
