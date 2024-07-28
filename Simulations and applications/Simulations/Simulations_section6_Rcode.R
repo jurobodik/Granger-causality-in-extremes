@@ -4,8 +4,8 @@
 #generate_data is the function that generated the data with sample size n, number of variables p (p=m from the manuscript) and structure='VAR' or 'GARCH' and heavy_tailed=TRUE or FALSE. 
 #For generating random graph we use the function erdos.renyi.game(p, 1/p, directed = TRUE,loops = FALSE) from igraph library
 #Lines 100-150 are the main part. We generate data with random graph + estimates the graph using our method + compute the distance between true graph and estimated graph + repeat 100 times and return the mean of the distances
-#We maually rewrote the values for each combination of 'structure' and 'heavy_tailed' into excel (easier since we dealt with python + R results)
-#The table with final results can be found here at lines 150+
+#We maually rewrote the values for each combination of 'structure' and 'heavy_tailed' into the table (easier since we dealt with python + R results)
+#The graph with final results can be found here at lines 150+
 
 
 library(EnvStats)
@@ -147,49 +147,113 @@ final_result
 
 
 
-standardisation = sequence_of_p*(sequence_of_p-1) #Because there are p*(p-1) arrows to estimate
-
-OUR_n_500_VAR_heavy = c(0.0198, 0.1485, 0.732, 1.5346, 6.5754257)/standardisation
-OUR_n_5000_VAR_heavy = c(0.000, 0.0693, 0.1287, 0.4554, 1.485148)/standardisation
-
-OUR_n_500_GARCH_heavy = c(0.079, 0.316,1.336, 2.940, 13.019 )/standardisation
-OUR_n_5000_GARCH_heavy = c(0.009, 0.069, 0.376, 1.128, 5.546)/standardisation
-
-OUR_n_500_VAR_nonheavy = c(0.69306, 1.93069, 4.5247, 7.5643, 23.831)/standardisation
-OUR_n_5000_VAR_nonheavy = c(0.48, 1.31, 2.95, 4.32, 9.81)/standardisation
-
-OUR_n_500_GARCH_nonheavy = c(0.603, 1.831, 4.287, 7.079, 20.336)/standardisation
-OUR_n_5000_GARCH_nonheavy = c(0.366, 1.207, 2.742, 4.316, 8.266)/standardisation
+#Here are the resulting numbers that you should get by running the previous codes 
+#We divide everything by p(p-1) because there are p*(p-1) arrows to estimate
+standardisation = sequence_of_p*(sequence_of_p-1) 
 
 
+# Define the data vectors
+data_vectors <- list(
+  # OUR Method (VAR heavy), n=500 and n=5000 respectively
+  c(0.0198, 0.1485, 0.732, 1.5346, 6.5754257) / standardisation,
+  c(0.000, 0.0693, 0.1287, 0.4554, 1.485148) / standardisation,
+  # OUR Method (GARCH heavy), n=500 and n=5000 respectively
+  c(0.079, 0.316, 1.336, 2.940, 13.019) / standardisation,
+  c(0.009, 0.069, 0.376, 1.128, 5.546) / standardisation,
+  # OUR Method (VAR non-heavy), n=500 and n=5000 respectively
+  c(0.69306, 1.93069, 4.5247, 7.5643, 23.831) / standardisation,
+  c(0.38, 1.31, 2.95, 4.32, 9.81) / standardisation,
+  # OUR Method (GARCH non-heavy), n=500 and n=5000 respectively
+  c(0.603, 1.831, 4.287, 7.079, 20.336) / standardisation,
+  c(0.366, 1.207, 2.742, 4.316, 8.266) / standardisation,
+  
+  # PCMCI COR (VAR heavy), n=500 and n=5000 respectively
+  c(0.15, 1.61, 5.84, 12.26, 54.5) / standardisation,
+  c(0.18, 2.63, 8.7, 17.71, 66.75) / standardisation,
+  # PCMCI COR (GARCH heavy), n=500 and n=5000 respectively
+  c(0.74, 2.9, 9.28, 18.7, 73.60) / standardisation,
+  c(0.66, 3.21, 9.54, 18.62, 72) / standardisation,
+  # PCMCI COR (VAR non-heavy), n=500 and n=5000 respectively
+  c(0.12, 1.26, 5.42, 12.05, 52.87) / standardisation,
+  c(0.12, 1.25, 5.05, 11.86, 48) / standardisation,
+  # PCMCI COR (GARCH non-heavy), n=500 and n=5000 respectively
+  c(0.84, 3.52, 9.93, 19.89, 74.83) / standardisation,
+  c(0.8, 3.44, 9.92, 20.27, 76.2) / standardisation,
+  
+  # PCMCI GPDC (VAR heavy), n=500 and n=5000 respectively
+  c(0.39, 2.91, 9.43, NA, NA) / (sequence_for_GPDC * (sequence_for_GPDC - 1)),
+  c(NA, NA, NA, NA, NA),
+  # PCMCI GPDC (GARCH heavy), n=500 and n=5000 respectively
+  c(0.57, 2.74, 7.87, NA, NA) / (sequence_for_GPDC * (sequence_for_GPDC - 1)),
+  c(NA, NA, NA, NA, NA),
+  # PCMCI GPDC (VAR non-heavy), n=500 and n=5000 respectively
+  c(0.11, 0.77, 3.09, NA, NA) / (sequence_for_GPDC * (sequence_for_GPDC - 1)),
+  c(NA, NA, NA, NA, NA),
+  # PCMCI GPDC (GARCH non-heavy), n=500 and n=5000 respectively
+  c(0.58, 2.74, 7.87, NA, NA) / (sequence_for_GPDC * (sequence_for_GPDC - 1)),
+  c(NA, NA, NA, NA, NA),
+  # Random data
+  rnorm(5, 0.5, 0.025), #0.025 is approximatelly the variance of the random graph error.
+  rnorm(5, 0.5, 0.025),
+  rnorm(5, 0.5, 0.025),
+  rnorm(5, 0.5, 0.025),
+  rnorm(5, 0.5, 0.025),
+  rnorm(5, 0.5, 0.025),
+  rnorm(5, 0.5, 0.025),
+  rnorm(5, 0.5, 0.025)
+)
 
 
-PCMCI_COR_n_500_VAR_heavy = c( 0.15,  1.61,  5.84, 12.26, 54.5 )/standardisation
-PCMCI_COR_n_5000_VAR_heavy = c( 0.18,  2.63,  8.7 , 17.71, 66.75)/standardisation
 
-PCMCI_COR_n_500_GARCH_heavy = c(0.74,  2.9 ,  9.28, 18.7, 73.60)/standardisation
-PCMCI_COR_n_5000_GARCH_heavy = c(0.66, 3.21, 9.54, 18.62, ???)/standardisation
+library(ggplot2)
+library(dplyr)
+library(tidyr)
 
-PCMCI_COR_n_500_VAR_nonheavy = c(0.12, 1.26,  5.42,  12.05, 52.87)/standardisation
-PCMCI_COR_n_5000_VAR_nonheavy = c(0.12, 1.25, 5.05, 11.86, ???)/standardisation
+data <- data.frame()
 
-PCMCI_COR_n_500_GARCH_nonheavy = c(0.94,  3.52,  9.93, 19.89, 74.83)/standardisation
-PCMCI_COR_n_5000_GARCH_nonheavy = c( 0.8 ,  3.44,  9.92, 20.27, 76.2)/standardisation
+# Fill the data frame
+for (i in seq_along(data_vectors)) {
+  # Determine method, setting_label, and n_label
+  method_index <- (i - 1) %/% 8 + 1
+  setting_index <- ((i-1)%/%2) %% 4 + 1
+  n_label_index <- ifelse(i %% 2 == 1, 1, 2)
+  
+  # Create a temporary data frame for this vector
+  temp_df <- expand.grid(
+    p = sequence_of_p,
+    method =c("Our method", "PCMCI cor", "PCMCI gpdc", "Random")[method_index],
+    n_label = c("n = 500", "n = 5000")[n_label_index],
+    setting_label = c("VAR heavy-tailed", "GARCH heavy-tailed", "VAR Gaussian", "GARCH Gaussian")[setting_index]
+  )
+  
+  # Assign the values from data_vectors to the temporary data frame
+  temp_df$structInterv_dist <- data_vectors[[i]]
+  
+  # Append to the main data frame
+  data <- rbind(data, temp_df)
+}
 
+# Plotting
+ggplot(data, aes(x = p, y = structInterv_dist, color = method)) +
+  geom_line(size = 0.7, linetype = "solid") +
+  geom_point(size = 2, shape = 16) + # Use shape = 16 for solid circles
+  ylab("Average error") +
+  xlab('Number of variables') +
+  facet_grid(setting_label ~ n_label) + # Transposed facets
+  scale_colour_manual(values = c('black', "#EE6677", "#228833", "#1f77b4")) +
+  theme(strip.text = element_text(size = 10), # Smaller font size for facet labels
+        axis.text = element_text(size = 12), # Smaller font size for axis text
+        axis.title = element_text(size = 12), # Smaller font size for axis titles
+        legend.text = element_text(size = 10), # Smaller font size for legend text
+        legend.title = element_blank(), # Hide legend title
+        legend.position = "right", # Move legend to the right
+        panel.grid.major = element_line(size = 0.5, linetype = "dashed", color = "grey80"),
+        panel.grid.minor = element_blank(),
+        aspect.ratio = 1) + # Ensure each facet is squared
+  scale_x_continuous(breaks = seq(0, 20, by = 5)) + # Regular breaks
+  scale_y_continuous(breaks = seq(0, 0.5, by = 0.1))
+#7x10 in export pdf
 
-
-
-PCMCI_GPDC_n_500_VAR_heavy = c(0.39, 3.23, 9.43, ???, ???)/standardisation
-PCMCI_GPDC_n_5000_VAR_heavy = c(???, ???, ???, ???, ???)/standardisation
-
-PCMCI_GPDC_n_500_GARCH_heavy = c(0.57, 2.94, 7.87, ???, ???)/standardisation
-PCMCI_GPDC_n_5000_GARCH_heavy = c(???, ???, ???, ???, ???)/standardisation
-
-PCMCI_GPDC_n_500_VAR_nonheavy = c(0.11, 0.77, 3.09, ???, ???)/standardisation
-PCMCI_GPDC_n_5000_VAR_nonheavy =c(???, ???, ???, ???, ???)/standardisation
-
-PCMCI_GPDC_n_500_GARCH_nonheavy = c(0.58, 3.79, 7.87, ???, ???)/standardisation
-PCMCI_GPDC_n_5000_GARCH_nonheavy = c(???, ???, ???, ???, ???)/standardisation
 
 
 
