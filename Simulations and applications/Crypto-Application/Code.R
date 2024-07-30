@@ -58,11 +58,17 @@ plot.igraph(graph,
 
 
 
-#If you want to obtain the estimates based on p-values, you can just try copmuting it for some specific edges that you are interested in
-#In general, the size of Gamma coefficients correspond to the p-values, so it is not necessary to compute all of them. 
-#For example, is there a line from x1->x2?
+#If you want to obtain the estimates based on p-values, you can use the following function:
+#Estimated_graph=Extreme_causality_full_graph_estimate(w=data, lag_future = lag_future, both_tails = TRUE, p_value_based = TRUE)
+#However, this will take a few days to compute on a fast computer
+#In general, the size of Gamma coefficients corresponds to the p-values, so it is not necessary to compute all of them. 
+#You will obtain the same graph as using the previous method with dumping_factor = 0.2
+
+#Alternatively, you can just try computing only some specific edges that you are interested in
+#For example, is there a line from x1->x2 conditioned on other variables?
 x = data$x1; y = data$x2; z = data.frame(data$x3, data$x4, data$x5, data$x6, data$x7, data$x8, data$x9, data$x10, data$x11, data$x12, data$x13, data$x14)
 Extreme_causality_test(x = x, y = y, z = z, lag_future = 30,  p_value_computation = TRUE)
+
 
 
 
@@ -91,7 +97,8 @@ plot.igraph(graph,
             vertex.label.cex = 1, 
             vertex.size =22, 
             main = 'Applying Algorithm 1, lag = 1 min')
-
+#Again, if you are willing to wait a few days, you can use 
+#Estimated_graph=Extreme_causality_full_graph_estimate(w=data, lag_future = lag_future, p_value_based = TRUE)
 
 
 
