@@ -46,7 +46,7 @@
 library(igraph)   # For visualizing the final graph estimates
 library(EnvStats) # Or any other package that can generate Pareto noise
 
-# Example: Generating a 4-dimensional VAR time series with lag=2
+## Example: Generating a 4-dimensional VAR time series with lag=2
 # n = 5000
 # epsilon_x = rpareto(n, 1, 1)
 # epsilon_y = rpareto(n, 1, 1)
@@ -62,14 +62,14 @@ library(EnvStats) # Or any other package that can generate Pareto noise
 # z = data.frame(z1, z2)
 # w = data.frame(z1, z2, x, y)
 
-# Running the extreme causality tests
+## Running the extreme causality tests
 # Extreme_causality_test(x, y, z, lag_future = 2, p_value_computation = FALSE) 
 # Extreme_causality_test(y, x, z, lag_future = 2, p_value_computation = FALSE)
 
-# Estimating the full causality graph
+## Estimating the full causality graph
 # G = Extreme_causality_full_graph_estimate(w, lag_future = 2) #Try it out also with lag = 1. You will see that the lagged edges dissapear
 
-# Visualizing the graph using igraph
+## Visualizing the graph using igraph
 # graph <- graph_from_edgelist(G$G)
 # V(graph)$name <- names(w)
 # plot(graph, layout = layout_nicely(graph), vertex.label = V(graph)$name)
