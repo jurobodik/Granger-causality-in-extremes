@@ -183,7 +183,7 @@ Extreme_causality_test = function(x, y, z=NULL, lag_future=1, lag_past=0, nu_x =
       }
       
     }
-    #what to do with the ending if it is not divisible? we just add one random block with smaller length to obtain times eris with length $n$ again
+    #what to do with the ending if it is not divisible? we just add one random block with a smaller length to obtain times eris with length $n$ again
     if (ncol(x)==1) {  #Code for one-dimensional time series
       if(n%%number_of_blocks!=0){y=c(y,x[((number_of_blocks*m+1):n),])}} 
     else{
@@ -234,6 +234,7 @@ Extreme_causality_test = function(x, y, z=NULL, lag_future=1, lag_past=0, nu_x =
 
 
 
+
 Extreme_causality_full_graph_estimate = function(w, lag_future=1, lag_past=0, nu_x = 0.3,  q_y = 0.2, q_z = 0.1, instant=FALSE, both_tails = TRUE, p_value_based = FALSE, p_value_cutoff = 0.05){
   
   m=ncol(w)
@@ -254,7 +255,7 @@ Extreme_causality_full_graph_estimate = function(w, lag_future=1, lag_past=0, nu
   for (i in 1:m) {
     for (j in (1:m)[-i]) {
       x=w[,i];y=w[,j]
-      CTC=Extreme_causality_test(x,y,z=NULL,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, instant=instant, lag_past = lag_past,both_tails=both_tails, p_value_computation = p_value_based)
+      CTC=Extreme_causality_test(x,y,z=NULL,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, instant=instant, lag_past = lag_past,both_tails=both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5/p_value_cutoff)
       if(p_value_based == FALSE){   if(CTC$output =='Evidence of causality') G=rbind(G, c(i,j))  }
       if(p_value_based == TRUE){   if(CTC$p_value_tail <=p_value_cutoff) G=rbind(G, c(i,j))  }
     }  
@@ -273,7 +274,7 @@ Extreme_causality_full_graph_estimate = function(w, lag_future=1, lag_past=0, nu
       if(all(z_indexes == FALSE)) {z=NULL}  
       if(!all(z_indexes == FALSE)) {z=data.frame(w[,z_indexes])}  
       
-      CTC=Extreme_causality_test(x,y,z=z,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, instant = instant, lag_past = lag_past, both_tails=both_tails, p_value_computation = p_value_based)
+      CTC=Extreme_causality_test(x,y,z=z,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, instant = instant, lag_past = lag_past, both_tails=both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5/p_value_cutoff)
       if(p_value_based == FALSE){ 
         if(CTC$output == 'No causality'){ indexes_to_erase = c(indexes_to_erase, i)}else{ edges_weights = c(edges_weights, compute_edge_weights(CTC$CTC, CTC$baseline))}
         }
@@ -284,6 +285,7 @@ Extreme_causality_full_graph_estimate = function(w, lag_future=1, lag_past=0, nu
   
   return(list(G = G[-indexes_to_erase,], weights = edges_weights))  
 }
+
 
 
 
