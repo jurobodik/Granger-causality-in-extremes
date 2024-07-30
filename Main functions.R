@@ -37,6 +37,7 @@
 # 'q_y'                   Same as in Extreme_causality_test.
 # 'q_z'                   Same as in Extreme_causality_test.
 # 'lag_past'              Same as in Extreme_causality_test.
+# 'p_value_based'         if FALSE, we use Algorithm 1 for inferring the edges. If TRUE, we use the testing procedure with a cut-off p-value of 0.05 for detecting the presence of an edge.  
 
 # Function Outputs:
 # 'G$G'                   A graph defined by its edges. Each row corresponds to an edge from the first column pointing to the second column. Use graph <- graph_from_edgelist(G$G) from the igraph library to obtain the graph environment.
@@ -231,7 +232,8 @@ Extreme_causality_test = function(x, y, z=NULL, lag_future=1, lag_past=0, nu_x =
 
 
 
-Extreme_causality_full_graph_estimate = function(w, lag_future=1, lag_past=0, nu_x = 0.3,  q_y = 0.2, q_z = 0.1, instant=FALSE, both_tails = TRUE){
+
+Extreme_causality_full_graph_estimate = function(w, lag_future=1, lag_past=0, nu_x = 0.3,  q_y = 0.2, q_z = 0.1, instant=FALSE, both_tails = TRUE, p_value_based = FALSE){
   
   m=ncol(w)
   
@@ -244,14 +246,16 @@ Extreme_causality_full_graph_estimate = function(w, lag_future=1, lag_past=0, nu
   }
   
   compute_edge_weights = function(CTC, baseline){ (CTC -((1+baseline)/2))/(1-((1+baseline)/2))  }
+  compute_edge_weights_for_p_values = function(p_value){ 20*( 0.05-p_value ) }
   
   #Step 1: Pairwise    
   G = c()  
   for (i in 1:m) {
     for (j in (1:m)[-i]) {
       x=w[,i];y=w[,j]
-      CTC=Extreme_causality_test(x,y,z=NULL,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, lag_past = lag_past,both_tails=both_tails)
-      if(CTC$output =='Evidence of causality') G=rbind(G, c(i,j))    
+      CTC=Extreme_causality_test(x,y,z=NULL,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, instant=instant, lag_past = lag_past,both_tails=both_tails, p_value_computation = p_value_based)
+      if(p_value_based == FALSE){   if(CTC$output =='Evidence of causality') G=rbind(G, c(i,j))  }
+      if(p_value_based == TRUE){   if(CTC$p_value_tail <=0.05) G=rbind(G, c(i,j))  }
     }  
   }
   
@@ -268,12 +272,19 @@ Extreme_causality_full_graph_estimate = function(w, lag_future=1, lag_past=0, nu
       if(all(z_indexes == FALSE)) {z=NULL}  
       if(!all(z_indexes == FALSE)) {z=data.frame(w[,z_indexes])}  
       
-      CTC=Extreme_causality_test(x,y,z=z,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, lag_past = lag_past, both_tails=both_tails)
-      if(CTC$output == 'No causality'){ indexes_to_erase = c(indexes_to_erase, i)}else{ edges_weights = c(edges_weights, compute_edge_weights(CTC$CTC, CTC$baseline))}
+      CTC=Extreme_causality_test(x,y,z=z,  nu_x = nu_x,   q_y =q_y, q_z=q_z, lag_future = lag_future, instant = instant, lag_past = lag_past, both_tails=both_tails, p_value_computation = p_value_based)
+      if(p_value_based == FALSE){ 
+        if(CTC$output == 'No causality'){ indexes_to_erase = c(indexes_to_erase, i)}else{ edges_weights = c(edges_weights, compute_edge_weights(CTC$CTC, CTC$baseline))}
+        }
+      if(p_value_based == TRUE){ 
+        if(CTC$p_value_tail >0.05){ indexes_to_erase = c(indexes_to_erase, i)}else{ edges_weights = c(edges_weights, compute_edge_weights_for_p_values(CTC$p_value_tail) )}
+      }
     }}
   
   return(list(G = G[-indexes_to_erase,], weights = edges_weights))  
 }
+
+
 
 
 
