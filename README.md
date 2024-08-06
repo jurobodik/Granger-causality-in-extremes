@@ -42,7 +42,8 @@ This function estimates the causal graph (path diagram) between a set of time se
 - **q_y**: Same as in `Extreme_causality_test`.
 - **q_z**: Same as in `Extreme_causality_test`.
 - **lag_past**: Same as in `Extreme_causality_test`.
-- **p_value_based**: if FALSE, we use Algorithm 1 for inferring the edges. If TRUE, we use the testing procedure with a cut-off p-value of 0.05 for detecting the presence of an edge. These procedures are typically equivalent, but the testing procedure is very slow. 
+- **p_value_based**: if FALSE, we use Algorithm 1 for inferring the edges. If TRUE, we use the testing procedure with a cut-off p-value of 0.05 for detecting the presence of an edge. These procedures typically output very similar results, but the testing procedure is very slow. 
+- **bootstrap_repetitions**: Precision of the p-value. A larger number will lead to slower computation, but more precise numbers. Ignore if p_value_based=FALSE
 
 ### Function Outputs:
 - **G$G**: A graph defined by its edges. Each row corresponds to an edge from the first column pointing to the second column. Use `graph <- graph_from_edgelist(G$G)` from the `igraph` library to obtain the graph environment.
