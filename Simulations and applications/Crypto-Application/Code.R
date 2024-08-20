@@ -20,7 +20,7 @@ for (i in 1:14) {
 data = as.data.frame(data)
 names(data) = c('x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9', 'x10', 'x11', 'x12', 'x13', 'x14')
 head(data)
-data = abs(data)
+data = abs(data) #we take absolute values since we both tails are of interest
 
 
 #Just the simple plot 
