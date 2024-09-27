@@ -895,7 +895,6 @@ ggplot(data_long, aes(x = alpha_X, y = value, color = q_F)) +
 
 
 
-
 # SECOND PLOT (5 and 6 results)
 data_long <- bind_rows(
   result5 %>% pivot_longer(cols = -k_n, names_to = "n", values_to = "value") %>% mutate(plot = "No hidden confounder"),
@@ -908,7 +907,7 @@ ggplot(data_long, aes(x = k_n, y = value, color = n)) +
   geom_line(size = 0.7, linetype = "solid") +
   geom_point(size = 2, shape = 16) + # Use shape = 16 for solid circles
   ylab("Performance") +
-  xlab(expression(k[n])) +
+  xlab(expression(nu)) +
   facet_wrap(~plot, ncol = 2) + # Facet into a 1x2 grid
   scale_colour_manual(values = c('black', "#EE6677", "#228833"),
                       labels = c(expression(n == 200), expression(n == 400),
@@ -920,15 +919,18 @@ ggplot(data_long, aes(x = k_n, y = value, color = n)) +
     legend.text = element_text(size = 10), # Smaller font size for legend text
     legend.title = element_blank(), # Hide legend title
     legend.position = "right", # Move legend to the right
-    panel.grid.major = element_line(size = 0.5, linetype = "dashed", color = "grey80"),
+    panel.grid.major = element_line(size = 0.5, linetype = "solid", color = "grey80"),
     panel.grid.minor = element_blank(),
     panel.spacing.x = unit(2, "lines"),
-    aspect.ratio = 1 # Ensure each facet is squared
+    aspect.ratio = 1, # Ensure each facet is squared
+    panel.background = element_rect(fill = "white"), # Background inside the panels
+    panel.border = element_rect(color = "black", fill = NA, size = 1)
   ) +
   scale_x_continuous(breaks = seq(0.2, 0.6, by = 0.1)) + # Regular breaks for x-axis
-  scale_y_continuous(breaks = seq(45, 95, by = 10)) # Regular breaks for y-axis
+  scale_y_continuous(breaks = seq(45, 95, by = 5)) # Regular breaks for y-axis
 
-#3x5 export pdf
+#3.7x5.8 export pdf
+
 
 
 
