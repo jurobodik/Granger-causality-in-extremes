@@ -297,6 +297,14 @@ ggplot(data, aes(x = p, y = structInterv_dist, color = method)) +
 
 
 
+#Time measurement - how long does it take to estimate one graph? 
+x=generate_data(n=500, p=20, structure = structure, heavy_tailed=heavy_tailed)
+start_time <- Sys.time()
+
+G=Extreme_causality_full_graph_estimate(x$data)
+
+end_time <- Sys.time()
+print(end_time - start_time)
 
 
 
