@@ -1,4 +1,4 @@
-#Simulations from section 6 state-of-the-art methods performance. This code deals with the Tigramite paclage
+#Simulations from section 6 state-of-the-art methods performance. This code deals with the Tigramite package
 #R code can be found in the other file that deals with our method
 
 #generate_data is the function that generated the data with sample size n, number of variables p (p=m from the manuscript) and structure='VAR' or 'GARCH' and heavy_tailed=TRUE or FALSE. 
@@ -250,6 +250,67 @@ results
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+######Time measurement - how long does it take to estimate the graph? 
+data = generate_data(n=500, p=20, structure = 'VAR', heavy_tailed=True)
+column_names = [f'X{i}' for i in range(1, data['data'].shape[1] + 1)]
+data = pd.DataFrame(data['data'].values, columns=column_names)
+
+start_time = time.time()
+
+pcmci = PCMCI(dataframe=pp.DataFrame(data.values), cond_ind_test=GPDC()) #Change cond_ind_test=RobustParCorr() for other measurment
+results = pcmci.run_pcmci(tau_max=1, tau_min=1, pc_alpha=None)
+graph = pcmci.all_parents
+    
+end_time = time.time()
+
+end_time - start_time
 
 
 
