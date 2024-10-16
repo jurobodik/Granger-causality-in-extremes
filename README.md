@@ -1,6 +1,6 @@
 # Welcome to the Granger Causality in Extremes Package!
 
-You can find the manuscript called 'Granger Causality in Extremes' at ARXIV at https://arxiv.org/abs/2407.09632 .
+You can find the manuscript called 'Granger Causality in Extremes' at ARXIV at https://arxiv.org/abs/2407.09632 . This repository also contains (extensions) of methods from https://github.com/jurobodik/Causality-in-extremes-of-time-series.git
 For any questions or error reports, please contact [juraj.bodik@unil.ch](mailto:juraj.bodik@unil.ch).
 
 ## Overview
