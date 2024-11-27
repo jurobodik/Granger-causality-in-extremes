@@ -14,7 +14,7 @@ This function tests whether the tails/extremes of time series `X` cause those of
 - **x**: A numeric vector representing the first time series (potential cause).
 - **y**: A numeric vector representing the second time series (potential effect).
 - **z**: A data.frame of potential confounders. Set to NULL if there are no confounders.
-- **lag_future**: The time delay for the effect from `x` to `y`. This is the coefficient $p$ in Appendix A of the manuscript.
+- **lag_future**: The max-lag or time delay for the effect from `x` to `y`. This is the coefficient $p$ in Appendix A of the manuscript.
 - **p_value_computation**: If `p_value_computation=FALSE` it returns the output based on (fast) Algorithm 1.  If `p_value_computation=TRUE` it computes the p-value for the hypothesis $H_0: X \text{ does not cause } Y \text{ in extremes given } Z$. If `p_value < 0.05`, we conclude that $X$ causes $Y$ given $Z$. 
 - **bootstrap_repetitions**: The number of bootstrap repetitions for p-value computation. More repetitions yield more precise p-values but require longer computation time.
 - **both_tails**: Set to TRUE to consider both large and extremely negative values. For example, in GARCH models, both tails are of interest, while in VAR models, only large values might be relevant.
