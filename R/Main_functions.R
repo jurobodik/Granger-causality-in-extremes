@@ -195,9 +195,12 @@ Extreme_causality_test <- function(x, y, z = NULL, lag_future = 1, lag_past = 0,
   }
 
 
-  output <- "No causality"
-  if (CTC > (1 + baseline) / 2) output <- "Evidence of causality"
-  return(data.frame(output = output, p_value_tail = mean(result <= result2), p_value_extreme = mean(result <= (1 + 3 * result2) / 4), CTC = CTC, baseline = baseline))
+  if (CTC > (1 + baseline) / 2) {
+    output <- "Evidence of causality"
+  } else {
+    output <- "No causality"
+  }
+  return(list(output = output, p_value_tail = mean(result <= result2), p_value_extreme = mean(result <= (1 + 3 * result2) / 4), CTC = CTC, baseline = baseline))
 }
 
 

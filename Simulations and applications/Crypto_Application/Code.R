@@ -3,10 +3,13 @@
 # main function needed to be uploaded for this application is 'Extreme_causality_full_graph_estimate' - this function can be found in the main file.
 
 source("./R/Main_functions.R")
-library("readxl")
+# source("./R/old_Main_functions_Juraj.R")
+source("./R/utils.R")
+library(readxl)
 library(igraph)
 
 dataset_path <- "./data/Crypto_Application/data_last_day.csv"
+results_folder <- "./Results/Crypto_Application/"
 
 set.seed(0)
 data_origin <- read.csv(file = dataset_path)
@@ -33,13 +36,15 @@ plot(data$x9, type = "l", col = 2, lty = 1, lwd = 2, xlab = "Time [minutes]", yl
 lines(data$x1, type = "l", lty = 1, lwd = 2)
 
 # Estimated graph using Algorithm 2 incorporating Algorithm 1
-Estimated_graph <- Extreme_causality_full_graph_estimate(w = data, lag_future = 1, both_tails = TRUE)
+Estimated_graph_1 <- Extreme_causality_full_graph_estimate(w = data, lag_future = 1, both_tails = TRUE)
+
+safe_save_rds(Estimated_graph_1, file = paste0(results_folder, "Estimated_graph_1.rds"))
 
 # We use igraph package to visualize it:
 dumping_factor <- 0 # increase if interested only in the strongest edges
-G <- list(G = Estimated_graph$G, weights = Estimated_graph$weights)
-G$G <- Estimated_graph$G[which(Estimated_graph$weights >= dumping_factor), ]
-G$weights <- Estimated_graph$weights[which(Estimated_graph$weights >= dumping_factor)]
+G <- list(G = Estimated_graph_1$G, weights = Estimated_graph_1$weights)
+G$G <- Estimated_graph_1$G[which(Estimated_graph_1$weights >= dumping_factor), ]
+G$weights <- Estimated_graph_1$weights[which(Estimated_graph_1$weights >= dumping_factor)]
 graph <- graph_from_edgelist(G$G)
 E(graph)$edge.width <- 10 * (G$weights)
 V(graph)$name <- c("Binance Coin", "Bitcoin", "BCH", "Cardano", "Dogecoin", "EOS.IO", "Ethereum", "Ethereum Classic", "IOTA", "Litecoin", "Maker", "Monero", "Stellar", "TRON")
@@ -57,12 +62,14 @@ plot.igraph(graph,
 
 # Estimated graph using Algorithm 2 incorporating the testing procedure, where an edge is present only if its corresponding p-value is below 0.05
 # Note that this takes a few hours to compute
-Estimated_graph <- Extreme_causality_full_graph_estimate(w = data, lag_future = 1, both_tails = TRUE, p_value_based = TRUE, p_value_cutoff = 0.06)
+Estimated_graph_2 <- Extreme_causality_full_graph_estimate(w = data, lag_future = 1, both_tails = TRUE, p_value_based = TRUE, p_value_cutoff = 0.06)
+
+safe_save_rds(Estimated_graph_2, file = paste0(results_folder, "Estimated_graph_2.rds"))
 
 # We use igraph package to visualize it:
-G <- list(G = Estimated_graph$G, weights = Estimated_graph$weights)
-G$G <- Estimated_graph$G[which(Estimated_graph$weights >= dumping_factor), ]
-G$weights <- Estimated_graph$weights[which(Estimated_graph$weights >= dumping_factor)]
+G <- list(G = Estimated_graph_2$G, weights = Estimated_graph_2$weights)
+G$G <- Estimated_graph_2$G[which(Estimated_graph_2$weights >= dumping_factor), ]
+G$weights <- Estimated_graph_2$weights[which(Estimated_graph_2$weights >= dumping_factor)]
 graph <- graph_from_edgelist(G$G)
 E(graph)$edge.width <- 10 * (G$weights)
 V(graph)$name <- c(
@@ -74,14 +81,16 @@ plot.igraph(graph)
 
 
 # Finally, the same with lag = 30
-Estimated_graph <- Extreme_causality_full_graph_estimate(
+Estimated_graph_3 <- Extreme_causality_full_graph_estimate(
   w = data, lag_future = 30, both_tails = TRUE,
   p_value_based = TRUE, p_value_cutoff = 0.05
 )
 
-G <- list(G = Estimated_graph$G, weights = Estimated_graph$weights)
-G$G <- Estimated_graph$G[which(Estimated_graph$weights >= dumping_factor), ]
-G$weights <- Estimated_graph$weights[which(Estimated_graph$weights >= dumping_factor)]
+safe_save_rds(Estimated_graph_3, file = paste0(results_folder, "Estimated_graph_3.rds"))
+
+G <- list(G = Estimated_graph_3$G, weights = Estimated_graph_3$weights)
+G$G <- Estimated_graph_3$G[which(Estimated_graph_3$weights >= dumping_factor), ]
+G$weights <- Estimated_graph_3$weights[which(Estimated_graph_3$weights >= dumping_factor)]
 graph <- graph_from_edgelist(G$G)
 E(graph)$edge.width <- 10 * (G$weights)
 V(graph)$name <- c(
