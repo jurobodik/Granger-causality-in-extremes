@@ -5,8 +5,6 @@
 #Lines 400-600 corresponds to the choice of tau_Y
 #Lines 600-700 corresponds to the choice of tau_Z
 #Lines 700-1000 correspond to the final plots using ggplot
-
-source('./R/Main_functions.R')
 library(EnvStats) #To generate Pareto noise
 set.seed(2)
 
@@ -131,6 +129,9 @@ legend("bottomright",
        legend=c("q_F=0", "q_F=0.3", "q_F=0.5",  "q_F=0.7"),
        col=c(1, 2, 3, 4),
        lty=c(1,1, 2, 3), lwd=3)
+
+
+
 
 
 

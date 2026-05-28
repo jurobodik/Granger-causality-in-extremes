@@ -7,7 +7,7 @@
 #We maually rewrote the values for each combination of 'structure' and 'heavy_tailed' into the table (easier since we dealt with python + R results)
 #The graph with final results can be found here at lines 150+
 
-source('./R/Main_functions.R')
+
 library(EnvStats)
 library(ExtremeRisks)
 library(igraph)
