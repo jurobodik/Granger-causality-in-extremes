@@ -19,9 +19,9 @@ library(zoo)
 
 data_folder <- "./data/Meteo_Application/"
 results_folder <- "./Results/Meteo_Application/"
-# precip_station <- "AIR" # the name of the station where precipitation was measured.
-precip_station <- "AUB" # the name of the station where precipitation was measured.
-# precip_station <- "BAU" # the name of the station where precipitation was measured.
+precip_station <- "AIR" # the name of the station where precipitation was measured.
+# precip_station <- "AUB"
+# precip_station <- "BAU"
 
 
 ## Part 1: Data import

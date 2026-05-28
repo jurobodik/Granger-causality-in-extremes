@@ -1,12 +1,13 @@
 # Crypto-Stock application of Granger causality in extremes
 
-# main function needed to be uploaded for this application is 'Extreme_causality_full_graph_estimate' - this function can be found in the main file.
-
 source("./R/Main_functions.R")
 # source("./R/old_Main_functions_Juraj.R")
 source("./R/utils.R")
 library(readxl)
 library(igraph)
+
+
+## Data import and preprocessing
 
 dataset_path <- "./data/Crypto_Application/data_last_day.csv"
 results_folder <- "./Results/Crypto_Application/"
@@ -21,6 +22,7 @@ log_returns <- function(prices) {
 
 data <- c()
 for (i in 1:14) {
+  # only works if the data is ordered by timestamp and there are no missing values for part of the assets.
   x <- data_origin[data_origin$Asset_ID == i, 4]
   x <- log_returns(x)
   data <- cbind(data, x)
@@ -35,7 +37,10 @@ data <- abs(data) # we take absolute values since we both tails are of interest
 plot(data$x9, type = "l", col = 2, lty = 1, lwd = 2, xlab = "Time [minutes]", ylab = "Log-return values", main = "IOTA and Binance")
 lines(data$x1, type = "l", lty = 1, lwd = 2)
 
-# Estimated graph using Algorithm 2 incorporating Algorithm 1
+
+## Graph estimation
+
+# 1. Estimated graph using Algorithm 2 incorporating Algorithm 1
 Estimated_graph_1 <- Extreme_causality_full_graph_estimate(w = data, lag_future = 1, both_tails = TRUE)
 
 safe_save_rds(Estimated_graph_1, file = paste0(results_folder, "Estimated_graph_1.rds"))
@@ -60,8 +65,8 @@ plot.igraph(graph,
 
 
 
-# Estimated graph using Algorithm 2 incorporating the testing procedure, where an edge is present only if its corresponding p-value is below 0.05
-# Note that this takes a few hours to compute
+# 2. Estimated graph using Algorithm 2 incorporating the testing procedure, where an edge is present only if its corresponding p-value is below 0.05
+# (Note that this takes a few hours to compute)
 Estimated_graph_2 <- Extreme_causality_full_graph_estimate(w = data, lag_future = 1, both_tails = TRUE, p_value_based = TRUE, p_value_cutoff = 0.06)
 
 safe_save_rds(Estimated_graph_2, file = paste0(results_folder, "Estimated_graph_2.rds"))
@@ -80,7 +85,7 @@ V(graph)$name <- c(
 plot.igraph(graph)
 
 
-# Finally, the same with lag = 30
+# 3. Finally, the same with lag = 30
 Estimated_graph_3 <- Extreme_causality_full_graph_estimate(
   w = data, lag_future = 30, both_tails = TRUE,
   p_value_based = TRUE, p_value_cutoff = 0.05
@@ -99,10 +104,6 @@ V(graph)$name <- c(
   "Maker", "Monero", "Stellar", "TRON"
 )
 plot.igraph(graph)
-
-
-
-
 
 
 

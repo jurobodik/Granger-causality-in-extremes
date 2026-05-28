@@ -2,8 +2,10 @@
 z_*
 tmp_*
 deprecated/
+*/deprecated/
 data/Meteo_Application/
 data/*/tmp/
+Results/Simulations_comparison/tables/*
 
 # History files
 .Rhistory

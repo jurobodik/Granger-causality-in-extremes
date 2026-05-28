@@ -1,3 +1,4 @@
+## Opasche's utils file, partially shared across projects.
 
 #' Check directory existence
 #'

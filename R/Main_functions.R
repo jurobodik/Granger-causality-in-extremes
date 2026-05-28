@@ -76,7 +76,6 @@ library(EnvStats) # Or any other package that can generate Pareto noise
 # plot(graph, layout = layout_nicely(graph), vertex.label = V(graph)$name)
 
 
-
 ## Main functions definitions
 
 Extreme_causality_test <- function(x, y, z = NULL, lag_future = 1, lag_past = 0, nu_x = 0.3, q_y = 0.2, q_z = 0.1, both_tails = TRUE, instant = FALSE, p_value_computation = FALSE, bootstrap_repetitions = 50, choice_of_F = 0.5) {
@@ -93,7 +92,6 @@ Extreme_causality_test <- function(x, y, z = NULL, lag_future = 1, lag_past = 0,
     if (!all(y >= 0)) y <- abs(y - median(y))
     if (d >= 1 & !all(z >= 0)) z <- abs(z - apply(z, 2, median))
   }
-
 
 
   F_u <- function(imput, output) { # This is the F^{truc}_Y(t) function that we opt for
@@ -169,7 +167,6 @@ Extreme_causality_test <- function(x, y, z = NULL, lag_future = 1, lag_past = 0,
   }
 
 
-
   if (CTC <= baseline) {
     result <- 0
     result2 <- 1
@@ -202,10 +199,6 @@ Extreme_causality_test <- function(x, y, z = NULL, lag_future = 1, lag_past = 0,
   }
   return(list(output = output, p_value_tail = mean(result <= result2), p_value_extreme = mean(result <= (1 + 3 * result2) / 4), CTC = CTC, baseline = baseline))
 }
-
-
-
-
 
 
 Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 0, nu_x = 0.3, q_y = 0.2, q_z = 0.1, instant = FALSE, both_tails = TRUE, p_value_based = FALSE, p_value_cutoff = 0.05) {
@@ -252,7 +245,7 @@ Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 
           indexes_to_erase <- c(indexes_to_erase, i)
         } else {
           edges_weights <- c(
-            edges_weights, 
+            edges_weights,
             compute_edge_weights(CTC$CTC, CTC$baseline)
           )
         }
@@ -262,8 +255,8 @@ Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 
           indexes_to_erase <- c(indexes_to_erase, i)
         } else {
           edges_weights <- c(
-            edges_weights, 
-            compute_edge_weights_for_p_values(p_value=CTC$p_value_tail, p_value_cutoff=p_value_cutoff)
+            edges_weights,
+            compute_edge_weights_for_p_values(p_value = CTC$p_value_tail, p_value_cutoff = p_value_cutoff)
           )
         }
       }
@@ -272,7 +265,6 @@ Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 
 
   return(list(G = G[-indexes_to_erase, ], weights = edges_weights))
 }
-
 
 
 ## Helper functions
@@ -293,7 +285,7 @@ run_future_max <- function(x, k = 3, instant = TRUE) { # instant= do we want to 
 
 switcher_for_test <- function(x, number_of_blocks = 15) { # resampling block-wise
   # x must be a matrix (rows=time, columns=variables)
-  
+
   n <- nrow(x)
   m <- n %/% number_of_blocks # length of one block
 
