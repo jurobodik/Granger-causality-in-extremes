@@ -58,7 +58,7 @@ safe_save_rds <- function(object, file_path, recursive=TRUE, no_warning=FALSE){
 #' @importFrom foreach %do% %dopar%
 #'
 #' @examples `%fun%` <- get_doFuture_operator("sequential")
-get_doFuture_operator <- function(strategy=c("sequential", "multisession", "multicore", "mixed")){
+get_doFuture_operator_deprecated <- function(strategy=c("sequential", "multisession", "multicore", "mixed")){
   
   strategy <- match.arg(strategy)
   
@@ -119,7 +119,8 @@ set_doFuture_strategy <- function(strategy=c("sequential", "multisession", "mult
     strategy_2 <- future::tweak(future::multisession, workers = n_workers)
     future::plan(list(strategy_1, strategy_2))
   }
-  return(get_doFuture_operator(strategy))
+  # return(get_doFuture_operator(strategy))
+  return(doFuture::`%dofuture%`)
 }
 
 

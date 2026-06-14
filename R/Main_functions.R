@@ -43,9 +43,9 @@
 # 'G$G'                   A graph defined by its edges. Each row corresponds to an edge from the first column pointing to the second column. Use graph <- graph_from_edgelist(G$G) from the igraph library to obtain the graph environment.
 # 'G$weights'             Weights corresponding to each edge, representing how close the coefficient hat{Gamma}_{X-->Y | Z} is to 1. If hat{Gamma}_{X-->Y | Z} = 1, the weight is 1. The weight is 0 if hat{Gamma}_{X-->Y | Z} = (1 + hat{Gamma}^{baseline}_{X-->Y | Z}) / 2.
 
-# Load required libraries
-library(igraph) # For visualizing the final graph estimates
-library(EnvStats) # Or any other package that can generate Pareto noise
+# # Load required libraries
+# library(igraph) # For visualizing the final graph estimates
+# library(EnvStats) # Or any other package that can generate Pareto noise
 
 ## Example: Generating a 4-dimensional VAR time series with lag=2
 # n = 5000
@@ -78,7 +78,11 @@ library(EnvStats) # Or any other package that can generate Pareto noise
 
 ## Main functions definitions
 
-Extreme_causality_test <- function(x, y, z = NULL, lag_future = 1, lag_past = 0, nu_x = 0.3, q_y = 0.2, q_z = 0.1, both_tails = TRUE, instant = FALSE, p_value_computation = FALSE, bootstrap_repetitions = 50, choice_of_F = 0.5) {
+Extreme_causality_test <- function(x, y, z = NULL, 
+                                   lag_future = 1, lag_past = 0, 
+                                   nu_x = 0.3, q_y = 0.2, q_z = 0.1, 
+                                   both_tails = TRUE, instant = FALSE, 
+                                   p_value_computation = FALSE, bootstrap_repetitions = 50, choice_of_F = 0.5) {
   n <- length(x)
   z <- data.frame(z)
   d <- ncol(z)
@@ -201,7 +205,9 @@ Extreme_causality_test <- function(x, y, z = NULL, lag_future = 1, lag_past = 0,
 }
 
 
-Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 0, nu_x = 0.3, q_y = 0.2, q_z = 0.1, instant = FALSE, both_tails = TRUE, p_value_based = FALSE, p_value_cutoff = 0.05) {
+Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 0, 
+                                                  nu_x = 0.3, q_y = 0.2, q_z = 0.1, instant = FALSE, 
+                                                  both_tails = TRUE, p_value_based = FALSE, p_value_cutoff = 0.05) {
   m <- ncol(w)
 
   # Step 1: Pairwise
@@ -210,7 +216,10 @@ Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 
     for (j in (1:m)[-i]) {
       x <- w[, i]
       y <- w[, j]
-      CTC <- Extreme_causality_test(x, y, z = NULL, nu_x = nu_x, q_y = q_y, q_z = q_z, lag_future = lag_future, instant = instant, lag_past = lag_past, both_tails = both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5 / p_value_cutoff)
+      CTC <- Extreme_causality_test(x, y, z = NULL, 
+                                    nu_x = nu_x, q_y = q_y, q_z = q_z, 
+                                    lag_future = lag_future, instant = instant, lag_past = lag_past, 
+                                    both_tails = both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5 / p_value_cutoff)
       if (p_value_based == FALSE) {
         if (CTC$output == "Evidence of causality") G <- rbind(G, c(i, j))
       }
@@ -239,7 +248,10 @@ Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 
         z <- data.frame(w[, z_indexes])
       }
 
-      CTC <- Extreme_causality_test(x, y, z = z, nu_x = nu_x, q_y = q_y, q_z = q_z, lag_future = lag_future, instant = instant, lag_past = lag_past, both_tails = both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5 / p_value_cutoff)
+      CTC <- Extreme_causality_test(x, y, z = z, 
+                                    nu_x = nu_x, q_y = q_y, q_z = q_z, 
+                                    lag_future = lag_future, instant = instant, lag_past = lag_past, 
+                                    both_tails = both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5 / p_value_cutoff)
       if (p_value_based == FALSE) {
         if (CTC$output == "No causality") {
           indexes_to_erase <- c(indexes_to_erase, i)
@@ -263,7 +275,93 @@ Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 
     }
   }
 
-  return(list(G = G[-indexes_to_erase, ], weights = edges_weights))
+  return(list(G = G[-indexes_to_erase, , drop=FALSE], weights = edges_weights))
+}
+
+
+Extreme_causality_graph_estimate_parallel <- function(w, lag_future = 1, lag_past = 0, 
+                                                      nu_x = 0.3, q_y = 0.2, q_z = 0.1, instant = FALSE, 
+                                                      both_tails = TRUE, p_value_based = FALSE, p_value_cutoff = 0.05,
+                                                      strategy = c("sequential", "multisession", "multicore", "mixed"), n_workers = NULL) {
+  m <- ncol(w)
+  strategy <- match.arg(strategy)
+  `%fun%` <- set_doFuture_strategy(strategy, n_workers)
+
+  # Step 1: Pairwise
+  index_pairs <- expand.grid('j' = 1:m, 'i' = 1:m)
+  index_pairs <- index_pairs[index_pairs$i != index_pairs$j, c('i', 'j')]
+  
+  G <- foreach::foreach(idx = 1:nrow(index_pairs), .combine = rbind, .options.future = list(seed = p_value_based)) %fun% {
+    i <- index_pairs$i[idx]
+    j <- index_pairs$j[idx]
+    x <- w[, i]
+    y <- w[, j]
+    CTC <- Extreme_causality_test(x, y, z = NULL, 
+                                  nu_x = nu_x, q_y = q_y, q_z = q_z, 
+                                  lag_future = lag_future, instant = instant, lag_past = lag_past, 
+                                  both_tails = both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5 / p_value_cutoff)
+    if (p_value_based) {
+      if (CTC$p_value_tail <= p_value_cutoff) {
+        tmp_toadd <- c(i, j)
+      } else {
+        tmp_toadd <- NULL
+      }
+    } else {
+      if (CTC$output == "Evidence of causality") {
+        tmp_toadd <- c(i, j)
+      } else {
+        tmp_toadd <- NULL
+      }
+    }
+    tmp_toadd
+  }
+
+  # Step 2: Multivariate
+  if (all(G == FALSE)) {
+    end_doFuture_strategy()
+    return("Result: Empty graph")
+  } else { # if G is non-empty
+    
+    tmp_res_multiv <- foreach::foreach(i = 1:nrow(G), .options.future = list(seed = p_value_based)) %fun% {
+      x <- w[, G[i, 1]]
+      y <- w[, G[i, 2]]
+
+      z_indexes <- intersect(find_parents(G, G[i, 1]), find_parents(G, G[i, 2]))
+      if (all(z_indexes == FALSE)) {
+        z <- NULL
+      } else {
+        z <- data.frame(w[, z_indexes])
+      }
+
+      CTC <- Extreme_causality_test(x, y, z = z, 
+                                    nu_x = nu_x, q_y = q_y, q_z = q_z, 
+                                    lag_future = lag_future, instant = instant, lag_past = lag_past, 
+                                    both_tails = both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5 / p_value_cutoff)
+      if (p_value_based) {
+        if (CTC$p_value_tail > p_value_cutoff) {
+          tmp_feres <- list(index = i, weight = NA)
+        } else {
+          tmp_feres <- list(index = NA, weight = compute_edge_weights_for_p_values(p_value = CTC$p_value_tail, p_value_cutoff = p_value_cutoff))
+        }
+      } else {
+        if (CTC$output == "No causality") {
+          tmp_feres <- list(index = i, weight = NA)
+        } else {
+          tmp_feres <- list(index = NA, weight = compute_edge_weights(CTC$CTC, CTC$baseline))
+        }
+      }
+      tmp_feres
+    }
+    
+    indexes_to_erase <- c(unlist(lapply(tmp_res_multiv, function(r) r$index)), .Machine$integer.max)
+    indexes_to_erase <- indexes_to_erase[!is.na(indexes_to_erase)]
+    edges_weights <- unlist(lapply(tmp_res_multiv, function(r) r$weight))
+    edges_weights <- edges_weights[!is.na(edges_weights)]
+    
+  }
+  end_doFuture_strategy()
+
+  return(list(G = G[-indexes_to_erase, , drop=FALSE], weights = edges_weights))
 }
 
 

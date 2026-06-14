@@ -5,7 +5,10 @@ deprecated/
 */deprecated/
 data/Meteo_Application/
 data/*/tmp/
+
+# temporary
 Results/Simulations_comparison/tables/*
+Results/*
 
 # History files
 .Rhistory
