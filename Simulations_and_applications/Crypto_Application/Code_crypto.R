@@ -22,7 +22,7 @@ n_workers <- 12 # future::availableCores() - 1
 ## Data import and preprocessing
 results_folder <- "./Results/Crypto_Application/"
 # save_folder <- paste0(results_folder, "graph_saves/")
-save_folder <- paste0(results_folder, "graph_saves_parallel/")
+save_folder <- paste0(results_folder, "graph_saves/")
 plot_folder <- paste0(results_folder, "figures/")
 
 check_directory(save_folder, recursive = TRUE, no_warning = TRUE)
@@ -171,13 +171,13 @@ tkplot_estimated_graph <- function(graph, graph_layout=NULL, ...) {
 checkpoint_path_1 <- paste0(save_folder, "Estimated_graph_", dataset_choice, "_A2_l1_A1.rds")
 if(force_recompute || !file.exists(checkpoint_path_1)){
   if(use_parallel_doFuture){
-    Estimated_graph_1 <- Extreme_causality_graph_estimate_parallel(
-      w = data, lag_future = 1, both_tails = TRUE,
+    Estimated_graph_1 <- Extreme_causality_graph_parallel(
+      w = data, max_causal_lag = 1, both_tails = TRUE,
       strategy = strategy, n_workers = n_workers
     )
   } else {
-    Estimated_graph_1 <- Extreme_causality_full_graph_estimate(
-      w = data, lag_future = 1, both_tails = TRUE
+    Estimated_graph_1 <- Extreme_causality_graph(
+      w = data, max_causal_lag = 1, both_tails = TRUE
     )
   }
   safe_save_rds(Estimated_graph_1, file = checkpoint_path_1)
@@ -192,17 +192,15 @@ if(force_recompute || !file.exists(checkpoint_path_1)){
 checkpoint_path_2 <- paste0(save_folder, "Estimated_graph_", dataset_choice, "_A2_l1_p05.rds")
 if(force_recompute || !file.exists(checkpoint_path_2)){
   if(use_parallel_doFuture){
-    Estimated_graph_2 <- Extreme_causality_graph_estimate_parallel(
-      w = data, lag_future = 1, both_tails = TRUE, 
+    Estimated_graph_2 <- Extreme_causality_graph_parallel(
+      w = data, max_causal_lag = 1, both_tails = TRUE, 
       p_value_based = TRUE, p_value_cutoff = 0.05,
-      # p_value_based = TRUE, p_value_cutoff = 0.06,
       strategy = strategy, n_workers = n_workers
     )
   } else {
-    Estimated_graph_2 <- Extreme_causality_full_graph_estimate(
-      w = data, lag_future = 1, both_tails = TRUE, 
+    Estimated_graph_2 <- Extreme_causality_graph(
+      w = data, max_causal_lag = 1, both_tails = TRUE, 
       p_value_based = TRUE, p_value_cutoff = 0.05
-      # p_value_based = TRUE, p_value_cutoff = 0.06
     )
   }
   safe_save_rds(Estimated_graph_2, file = checkpoint_path_2)
@@ -216,14 +214,14 @@ if(force_recompute || !file.exists(checkpoint_path_2)){
 checkpoint_path_3 <- paste0(save_folder, "Estimated_graph_", dataset_choice, "_A2_l30_p05.rds")
 if(force_recompute || !file.exists(checkpoint_path_3)){
   if(use_parallel_doFuture){
-    Estimated_graph_3 <- Extreme_causality_graph_estimate_parallel(
-      w = data, lag_future = 30, both_tails = TRUE,
+    Estimated_graph_3 <- Extreme_causality_graph_parallel(
+      w = data, max_causal_lag = 30, both_tails = TRUE,
       p_value_based = TRUE, p_value_cutoff = 0.05,
       strategy = strategy, n_workers = n_workers
     )
   } else {
-    Estimated_graph_3 <- Extreme_causality_full_graph_estimate(
-      w = data, lag_future = 30, both_tails = TRUE,
+    Estimated_graph_3 <- Extreme_causality_graph(
+      w = data, max_causal_lag = 30, both_tails = TRUE,
       p_value_based = TRUE, p_value_cutoff = 0.05
     )
   }
@@ -234,24 +232,24 @@ if(force_recompute || !file.exists(checkpoint_path_3)){
 
 
 
-# 4. Finally, using Algorithm 2 incorporating Algorithm 1 with lag 30
-set.seed(123) # It was run separately
-checkpoint_path_4 <- paste0(save_folder, "Estimated_graph_", dataset_choice, "_A2_l30_A1.rds")
-if(force_recompute || !file.exists(checkpoint_path_4)){
-  if(use_parallel_doFuture){
-    Estimated_graph_4 <- Extreme_causality_graph_estimate_parallel(
-      w = data, lag_future = 30, both_tails = TRUE,
-      strategy = strategy, n_workers = n_workers
-    )
-  } else {
-    Estimated_graph_4 <- Extreme_causality_full_graph_estimate(
-      w = data, lag_future = 30, both_tails = TRUE
-    )
-  }
-  safe_save_rds(Estimated_graph_4, file = checkpoint_path_4)
-} else {
-  Estimated_graph_4 <- readRDS(checkpoint_path_4)
-}
+# # 4. Finally, using Algorithm 2 incorporating Algorithm 1 with lag 30
+# set.seed(123) # It was run separately
+# checkpoint_path_4 <- paste0(save_folder, "Estimated_graph_", dataset_choice, "_A2_l30_A1.rds")
+# if(force_recompute || !file.exists(checkpoint_path_4)){
+#   if(use_parallel_doFuture){
+#     Estimated_graph_4 <- Extreme_causality_graph_parallel(
+#       w = data, max_causal_lag = 30, both_tails = TRUE,
+#       strategy = strategy, n_workers = n_workers
+#     )
+#   } else {
+#     Estimated_graph_4 <- Extreme_causality_graph(
+#       w = data, max_causal_lag = 30, both_tails = TRUE
+#     )
+#   }
+#   safe_save_rds(Estimated_graph_4, file = checkpoint_path_4)
+# } else {
+#   Estimated_graph_4 <- readRDS(checkpoint_path_4)
+# }
 
 
 
@@ -261,54 +259,40 @@ if(do_plots){
   graph_1 <- postprocess_estimated_graph(Estimated_graph_1, dumping_factor = dumping_factor, V_names = asset_names)
   graph_2 <- postprocess_estimated_graph(Estimated_graph_2, dumping_factor = dumping_factor, V_names = asset_names)
   graph_3 <- postprocess_estimated_graph(Estimated_graph_3, dumping_factor = dumping_factor, V_names = asset_names)
-  graph_4 <- postprocess_estimated_graph(Estimated_graph_4, dumping_factor = dumping_factor, V_names = asset_names)
+  # graph_4 <- postprocess_estimated_graph(Estimated_graph_4, dumping_factor = dumping_factor, V_names = asset_names)
   
   # graphs_default_layout <- igraph::layout_with_graphopt(graph_2, start = igraph::layout_as_tree(graph_2),
   #                                                       charge = 0.5, mass = 30, niter = 1000)
-  # graphs_default_layout <- graphs_default_layout[c(4,7,3,1,5,6,2,8,14,10,11,12,13,9),]
-  # graphs_default_layout <- rbind(c(-248.939187,  814.0000),  # "Binance Coin"
-  #                                c(  12.964700,  293.0000),  # "Bitcoin"
-  #                                c(-278.574257, -223.7301),  # "BCH"
-  #                                c(-732.500000,  673.0000),  # "Cardano"
-  #                                c(-481.500000,  227.2756),  # "Dogecoin"
-  #                                c( 390.000000, -945.5917),  # "EOS.IO"
-  #                                c(  -9.695144, -658.0000),  # "Ethereum"
-  #                                c(-771.500000, -181.2956),  # "Ethereum Classic"
-  #                                c( 743.500000,  700.7325),  # "IOTA"
-  #                                c( 250.295514,  734.0000),  # "Litecoin"
-  #                                c( 711.500000, -234.8546),  # "Maker"
-  #                                c( 524.532835,  249.0118),  # "Monero"
-  #                                c(-554.930701, -640.0000),  # "Stellar"
-  #                                c( 226.364516, -157.0000))  # "TRON"
-  # graphs_default_layout <- rbind(c(-248.93,  814.00),  # "Binance Coin"
-  #                                c(  12.96,  293.00),  # "Bitcoin"
-  #                                c(-335.57, -233.73),  # "BCH"
-  #                                c(-732.50,  673.00),  # "Cardano"
-  #                                c(-481.50,  227.27),  # "Dogecoin"
-  #                                c( 420.00, -650.00),  # "EOS.IO"
-  #                                c(  -9.69, -658.00),  # "Ethereum"
-  #                                c(-771.50, -181.29),  # "Ethereum Classic"
-  #                                c( 743.50,  700.73),  # "IOTA"
-  #                                c( 250.29,  734.00),  # "Litecoin"
-  #                                c( 701.50, -234.85),  # "Maker"
-  #                                c( 554.53,  249.01),  # "Monero"
-  #                                c(-490.00, -640.00),  # "Stellar"
-  #                                c( 290.00, -140.00))  # "TRON"
   
-  graphs_default_layout <- rbind(c(  12.69, -598.00),  # "Binance Coin"
-                                 c(-248.93,  814.00),  # "Bitcoin"
-                                 c(-251.93, -220.73),  # "BCH"
-                                 c( 420.00, -650.00),  # "Cardano"
+  graphs_default_layout <- rbind(c(-248.93,  814.00),  # "Binance Coin"
+                                 c(  12.96,  293.00),  # "Bitcoin"
+                                 c(-335.57, -233.73),  # "BCH"
+                                 c(-732.50,  673.00),  # "Cardano"
                                  c(-481.50,  227.27),  # "Dogecoin"
-                                 c(-732.50,  673.00),  # "EOS.IO"
-                                 c(  12.96,  293.00),  # "Ethereum"
-                                 c(-771.50, -210.29),  # "Ethereum Classic"
+                                 c( 420.00, -650.00),  # "EOS.IO"
+                                 c(  -9.69, -658.00),  # "Ethereum"
+                                 c(-771.50, -181.29),  # "Ethereum Classic"
                                  c( 743.50,  700.73),  # "IOTA"
                                  c( 250.29,  734.00),  # "Litecoin"
-                                 c( 290.00, -140.00),  # "Maker"
-                                 c( 674.53,  249.01),  # "Monero"
+                                 c( 701.50, -234.85),  # "Maker"
+                                 c( 554.53,  249.01),  # "Monero"
                                  c(-490.00, -640.00),  # "Stellar"
-                                 c( 701.50, -234.85))  # "TRON"
+                                 c( 290.00, -140.00))  # "TRON"
+  
+  # graphs_default_layout <- rbind(c(  12.69, -598.00),  # "Binance Coin"
+  #                                c(-248.93,  814.00),  # "Bitcoin"
+  #                                c(-251.93, -220.73),  # "BCH"
+  #                                c( 420.00, -650.00),  # "Cardano"
+  #                                c(-481.50,  227.27),  # "Dogecoin"
+  #                                c(-732.50,  673.00),  # "EOS.IO"
+  #                                c(  12.96,  293.00),  # "Ethereum"
+  #                                c(-771.50, -210.29),  # "Ethereum Classic"
+  #                                c( 743.50,  700.73),  # "IOTA"
+  #                                c( 250.29,  734.00),  # "Litecoin"
+  #                                c( 290.00, -140.00),  # "Maker"
+  #                                c( 674.53,  249.01),  # "Monero"
+  #                                c(-490.00, -640.00),  # "Stellar"
+  #                                c( 701.50, -234.85))  # "TRON"
   
   
   plot_estimated_graph(graph_1, graph_layout = graphs_default_layout, main = "Using Algorithm 1 and 1 min lag")
@@ -326,28 +310,10 @@ if(do_plots){
                        save_path = paste0(plot_folder, "Estimated_graph_", dataset_choice, "_A2_l30_p05.pdf"))
   # tkplot_estimated_graph(graph_3, graph_layout = graphs_default_layout)
   
-  plot_estimated_graph(graph_4, graph_layout = graphs_default_layout, main = "Using Algorithm 2 and 30 min lag")
-  plot_estimated_graph(graph_4, graph_layout = graphs_default_layout, # main = "Using Algorithm 2 and 30 min lag", 
-                       save_path = paste0(plot_folder, "Estimated_graph_", dataset_choice, "_A2_l30_A1.pdf"))
-  # tkplot_estimated_graph(graph_4, graph_layout = graphs_default_layout)
+  # plot_estimated_graph(graph_4, graph_layout = graphs_default_layout, main = "Using Algorithm 2 and 30 min lag")
+  # plot_estimated_graph(graph_4, graph_layout = graphs_default_layout, # main = "Using Algorithm 2 and 30 min lag", 
+  #                      save_path = paste0(plot_folder, "Estimated_graph_", dataset_choice, "_A2_l30_A1.pdf"))
+  # # tkplot_estimated_graph(graph_4, graph_layout = graphs_default_layout)
 }
 
 
-
-# Fun fact: We asked ChatGPT on May 2024 to draw causal graph between the variables. This is the result:
-
-# Bitcoin --> Ethereum --> ERC-20 Tokens (e.g., Maker, IOTA)
-#|           |
-#             +--> Ethereum Classic
-#|
-#  +--> Litecoin --> Dogecoin
-#|
-#  +--> Monero
-#|
-#  +--> Binance Coin
-#|
-#  +--> Cardano --> Stellar
-#|
-#  +--> BCH
-#|
-#  +--> EOS.IO

@@ -9,14 +9,14 @@
 # 'x'                     A numeric vector representing the first time series (potential cause).
 # 'y'                     A numeric vector representing the second time series (potential effect).
 # 'z'                     A data.frame of potential confounders. Set to NULL if there are no confounders.
-# 'lag_future'            The time delay for the effect from x to y. This is the coefficient 'p' in Appendix A of the manuscript.
+# 'max_causal_lag'            The time delay for the effect from x to y. This is the coefficient 'p' in Appendix A of the manuscript.
 # 'p_value_computation'   Set to TRUE to compute the p-value for the hypothesis H_0: X does not cause Y in extremes given Z. If p_value < 0.05, we conclude that X causes Y given Z.
 # 'bootstrap_repetitions' The number of bootstrap repetitions for p-value computation. More repetitions yield more precise p-values but require longer computation time.
 # 'both_tails'            Set to TRUE to consider both large and extremely negative values. For example, in GARCH models, both tails are of interest, while in VAR models, only large values might be relevant.
 # 'nu_x'                  The coefficient tau_X or k_n in the manuscript, defined as "k=floor(n^{nu_x})". If strong hidden confounding is expected, set nu_x to 0.4 or 0.5.
 # 'q_y'                   The coefficient tau_y = q_y * n, describing the conditioning on Y_t. For large auto-correlation in Y, set q_y to 0.1 or less. Note that in the manuscript, q_y is defined as 1 - q_y.
 # 'q_z'                   The coefficient tau_z = q_z * n, describing the conditioning on Z_t. This is irrelevant if Z is NULL. For strong confounding effects, set q_z to 0.2 or 0.3. Note that in the manuscript, q_z is defined as 1 - q_z.
-# 'lag_past'              The lag from Z to (X, Y). If the common cause has different lags to X and Y, it may cause spurious causality between X and Y. Ensure lag_past is larger than this lag.
+# 'max_confounder_lag'              The lag from Z to (X, Y). If the common cause has different lags to X and Y, it may cause spurious causality between X and Y. Ensure max_confounder_lag is larger than this lag.
 # 'choice_of_F'           Choice of F in the coefficient. Leave default unless you want to reproduce the results from the manuscript
 
 # Function Outputs:
@@ -26,17 +26,17 @@
 # 'CTC'                   The coefficient hat{Gamma}_{X-->Y | Z}.
 # 'baseline'              The baseline coefficient hat{Gamma}^{baseline}_{X-->Y | Z}.
 
-######################### Extreme_causality_full_graph_estimate ###############################################################
+######################### Extreme_causality_graph ###############################################################
 # This function estimates the causal graph (path diagram) between a set of time series.
 
 # Function Inputs:
 # 'w'                     A data.frame of all time series, which should be numeric and of the same length.
-# 'lag_future'            Same as in Extreme_causality_test.
+# 'max_causal_lag'            Same as in Extreme_causality_test.
 # 'both_tails'            Same as in Extreme_causality_test.
 # 'nu_x'                  Same as in Extreme_causality_test.
 # 'q_y'                   Same as in Extreme_causality_test.
 # 'q_z'                   Same as in Extreme_causality_test.
-# 'lag_past'              Same as in Extreme_causality_test.
+# 'max_confounder_lag'              Same as in Extreme_causality_test.
 # 'p_value_based'         if FALSE, we use Algorithm 1 for inferring the edges. If TRUE, we use the testing procedure with a cut-off p-value of 0.05 for detecting the presence of an edge.
 
 # Function Outputs:
@@ -64,11 +64,11 @@
 # w = data.frame(z1, z2, x, y)
 
 ## Running the extreme causality tests
-# Extreme_causality_test(x, y, z, lag_future = 2, p_value_computation = FALSE)
-# Extreme_causality_test(y, x, z, lag_future = 2, p_value_computation = FALSE)
+# Extreme_causality_test(x, y, z, max_causal_lag = 2, p_value_computation = FALSE)
+# Extreme_causality_test(y, x, z, max_causal_lag = 2, p_value_computation = FALSE)
 
 ## Estimating the full causality graph
-# G = Extreme_causality_full_graph_estimate(w, lag_future = 2) #Try it out also with lag = 1. You will see that the lagged edges dissapear
+# G = Extreme_causality_graph(w, max_causal_lag = 2) #Try it out also with lag = 1. You will see that the lagged edges dissapear
 
 ## Visualizing the graph using igraph
 # graph <- graph_from_edgelist(G$G)
@@ -79,7 +79,7 @@
 ## Main functions definitions
 
 Extreme_causality_test <- function(x, y, z = NULL, 
-                                   lag_future = 1, lag_past = 0, 
+                                   max_causal_lag = 1, max_confounder_lag = 0, 
                                    nu_x = 0.3, q_y = 0.2, q_z = 0.1, 
                                    both_tails = TRUE, instant = FALSE, 
                                    p_value_computation = FALSE, bootstrap_repetitions = 50, choice_of_F = 0.5) {
@@ -103,9 +103,9 @@ Extreme_causality_test <- function(x, y, z = NULL,
   }
 
 
-  CTC_baseline <- function(x, y, z = NULL, lag_future = lag_future, lag_past = lag_past, tau_y = tau_y, tau_z = tau_z, instant = instant) {
+  CTC_baseline <- function(x, y, z = NULL, max_causal_lag = max_causal_lag, max_confounder_lag = max_confounder_lag, tau_y = tau_y, tau_z = tau_z, instant = instant) {
     x_to_y_masking <- c()
-    for (i in 1:(lag_past + 1)) {
+    for (i in 1:(max_confounder_lag + 1)) {
       yy <- c(rep(0, i - 1), y)
       x_to_y_masking <- c(x_to_y_masking, which(yy > sort(y)[(n - tau_y)]))
 
@@ -118,7 +118,7 @@ Extreme_causality_test <- function(x, y, z = NULL,
       x_to_y_masking <- unique(x_to_y_masking)
     }
 
-    future_y <- run_future_max(y, lag_future, instant = instant)
+    future_y <- run_future_max(y, max_causal_lag, instant = instant)
     # baseline1 =mean(F_u(y[-x_to_y_masking], future_y[-x_to_y_masking]))
     baseline2 <- mean(F_u(y, future_y[-x_to_y_masking]))
 
@@ -126,9 +126,9 @@ Extreme_causality_test <- function(x, y, z = NULL,
   }
 
 
-  CTC_masked <- function(x, y, z = NULL, lag_future, lag_past, tau_y, tau_z, instant) {
+  CTC_masked <- function(x, y, z = NULL, max_causal_lag, max_confounder_lag, tau_y, tau_z, instant) {
     x_to_y_masking <- c()
-    for (i in 1:(lag_past + 1)) {
+    for (i in 1:(max_confounder_lag + 1)) {
       yy <- c(rep(0, i - 1), y)
       x_to_y_masking <- c(x_to_y_masking, which(yy > sort(y)[(n - tau_y)]))
 
@@ -146,7 +146,7 @@ Extreme_causality_test <- function(x, y, z = NULL,
 
     new_x <- x[-x_to_y_masking]
 
-    future_y <- run_future_max(y, lag_future, instant = instant)
+    future_y <- run_future_max(y, max_causal_lag, instant = instant)
 
     future_y <- future_y[-x_to_y_masking]
 
@@ -157,8 +157,8 @@ Extreme_causality_test <- function(x, y, z = NULL,
     return(mean(F_u(y, future_y[top_x])))
   }
 
-  baseline <- CTC_baseline(x, y, z = z, lag_future = lag_future, lag_past = lag_past, tau_y = tau_y, tau_z = tau_z, instant = instant)
-  CTC <- CTC_masked(x, y, z, lag_future = lag_future, lag_past = lag_past, tau_y = tau_y, tau_z = tau_z, instant = instant)
+  baseline <- CTC_baseline(x, y, z = z, max_causal_lag = max_causal_lag, max_confounder_lag = max_confounder_lag, tau_y = tau_y, tau_z = tau_z, instant = instant)
+  CTC <- CTC_masked(x, y, z, max_causal_lag = max_causal_lag, max_confounder_lag = max_confounder_lag, tau_y = tau_y, tau_z = tau_z, instant = instant)
 
 
   if (p_value_computation == FALSE) {
@@ -190,8 +190,8 @@ Extreme_causality_test <- function(x, y, z = NULL,
       if (d > 0) {
         tilde_z <- data.frame(new_time_series[, 3:(d + 2)])
       }
-      result <- c(result, CTC_masked(tilde_x, tilde_y, tilde_z, lag_future = lag_future, lag_past = lag_past, tau_y = tau_y, tau_z = tau_z, instant = instant))
-      result2 <- c(result2, CTC_baseline(tilde_x, tilde_y, tilde_z, lag_future = lag_future, lag_past = lag_past, tau_y = tau_y, tau_z = tau_z, instant = instant))
+      result <- c(result, CTC_masked(tilde_x, tilde_y, tilde_z, max_causal_lag = max_causal_lag, max_confounder_lag = max_confounder_lag, tau_y = tau_y, tau_z = tau_z, instant = instant))
+      result2 <- c(result2, CTC_baseline(tilde_x, tilde_y, tilde_z, max_causal_lag = max_causal_lag, max_confounder_lag = max_confounder_lag, tau_y = tau_y, tau_z = tau_z, instant = instant))
     }
   }
 
@@ -205,9 +205,9 @@ Extreme_causality_test <- function(x, y, z = NULL,
 }
 
 
-Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 0, 
-                                                  nu_x = 0.3, q_y = 0.2, q_z = 0.1, instant = FALSE, 
-                                                  both_tails = TRUE, p_value_based = FALSE, p_value_cutoff = 0.05) {
+Extreme_causality_graph <- function(w, max_causal_lag = 1, max_confounder_lag = 0, 
+                                    nu_x = 0.3, q_y = 0.2, q_z = 0.1, instant = FALSE, 
+                                    both_tails = TRUE, p_value_based = FALSE, p_value_cutoff = 0.05) {
   m <- ncol(w)
 
   # Step 1: Pairwise
@@ -218,7 +218,7 @@ Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 
       y <- w[, j]
       CTC <- Extreme_causality_test(x, y, z = NULL, 
                                     nu_x = nu_x, q_y = q_y, q_z = q_z, 
-                                    lag_future = lag_future, instant = instant, lag_past = lag_past, 
+                                    max_causal_lag = max_causal_lag, instant = instant, max_confounder_lag = max_confounder_lag, 
                                     both_tails = both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5 / p_value_cutoff)
       if (p_value_based == FALSE) {
         if (CTC$output == "Evidence of causality") G <- rbind(G, c(i, j))
@@ -250,7 +250,7 @@ Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 
 
       CTC <- Extreme_causality_test(x, y, z = z, 
                                     nu_x = nu_x, q_y = q_y, q_z = q_z, 
-                                    lag_future = lag_future, instant = instant, lag_past = lag_past, 
+                                    max_causal_lag = max_causal_lag, instant = instant, max_confounder_lag = max_confounder_lag, 
                                     both_tails = both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5 / p_value_cutoff)
       if (p_value_based == FALSE) {
         if (CTC$output == "No causality") {
@@ -279,10 +279,10 @@ Extreme_causality_full_graph_estimate <- function(w, lag_future = 1, lag_past = 
 }
 
 
-Extreme_causality_graph_estimate_parallel <- function(w, lag_future = 1, lag_past = 0, 
-                                                      nu_x = 0.3, q_y = 0.2, q_z = 0.1, instant = FALSE, 
-                                                      both_tails = TRUE, p_value_based = FALSE, p_value_cutoff = 0.05,
-                                                      strategy = c("sequential", "multisession", "multicore", "mixed"), n_workers = NULL) {
+Extreme_causality_graph_parallel <- function(w, max_causal_lag = 1, max_confounder_lag = 0, 
+                                             nu_x = 0.3, q_y = 0.2, q_z = 0.1, instant = FALSE, 
+                                             both_tails = TRUE, p_value_based = FALSE, p_value_cutoff = 0.05,
+                                             strategy = c("sequential", "multisession", "multicore", "mixed"), n_workers = NULL) {
   m <- ncol(w)
   strategy <- match.arg(strategy)
   `%fun%` <- set_doFuture_strategy(strategy, n_workers)
@@ -298,7 +298,7 @@ Extreme_causality_graph_estimate_parallel <- function(w, lag_future = 1, lag_pas
     y <- w[, j]
     CTC <- Extreme_causality_test(x, y, z = NULL, 
                                   nu_x = nu_x, q_y = q_y, q_z = q_z, 
-                                  lag_future = lag_future, instant = instant, lag_past = lag_past, 
+                                  max_causal_lag = max_causal_lag, instant = instant, max_confounder_lag = max_confounder_lag, 
                                   both_tails = both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5 / p_value_cutoff)
     if (p_value_based) {
       if (CTC$p_value_tail <= p_value_cutoff) {
@@ -335,7 +335,7 @@ Extreme_causality_graph_estimate_parallel <- function(w, lag_future = 1, lag_pas
 
       CTC <- Extreme_causality_test(x, y, z = z, 
                                     nu_x = nu_x, q_y = q_y, q_z = q_z, 
-                                    lag_future = lag_future, instant = instant, lag_past = lag_past, 
+                                    max_causal_lag = max_causal_lag, instant = instant, max_confounder_lag = max_confounder_lag, 
                                     both_tails = both_tails, p_value_computation = p_value_based, bootstrap_repetitions = 5 / p_value_cutoff)
       if (p_value_based) {
         if (CTC$p_value_tail > p_value_cutoff) {

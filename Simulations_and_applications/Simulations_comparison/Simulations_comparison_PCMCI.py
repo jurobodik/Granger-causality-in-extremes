@@ -7,6 +7,7 @@
 # Results are saved for later processing.
 
 import os, sys
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 import time
@@ -66,48 +67,84 @@ os.makedirs(results_folder, exist_ok=True)
 np.random.seed(0)
 
 
+def generate_data(n=200, p=4, structure="VAR", heavy_tailed=True, seed=None):
 
-def generate_data(n=200, p=4, structure='VAR', heavy_tailed=True):
-   
-    def generate_data_with_possible_NA(n, p, structure, heavy_tailed, seed): #there is a small chance that if there are too many arrows pointing into one vertex, it will explode since the stationarity will be violated. I was lazy and if this happens we just repeat while this is not the case
-        x = pd.DataFrame(np.zeros((n, p)))
-        epsilon = pd.DataFrame(np.zeros((n, p)))
+    def generate_data_internal(n, p, structure, heavy_tailed, seed):
+        # Directed Erdos-Renyi graph, no self-loops
         true_graph = nx.erdos_renyi_graph(p, 1/p, seed=seed, directed=True)
-       
-        if heavy_tailed:
-            if structure == 'VAR':
-                for i in range(p):
-                    epsilon.iloc[:, i] = pareto.rvs(1, size=n)
-            elif structure == 'GARCH':
-                for i in range(p):
-                    epsilon.iloc[:, i] = cauchy.rvs(size=n)
+        true_graph.remove_edges_from(nx.selfloop_edges(true_graph))
+        
+        X = np.zeros((n, p))
+
+        if structure == "VAR":
+            ar_coef = 0.1
+            cross_coef = 0.5
+            noise_sd = 1
+            normalize_by_indegree = False
+
+            if heavy_tailed:
+                epsilon = pareto.rvs(1, size=(n, p))
+            else:
+                epsilon = norm.rvs(size=(n, p))
+
+            # Create B[i, k] = effect of source k on target i
+            B = np.zeros((p, p))
+            for source, target in true_graph.edges():
+                B[target, source] = cross_coef
+
+            if normalize_by_indegree:
+                indeg = np.sum(B != 0, axis=1)
+                indeg[indeg == 0] = 1
+                B = B / indeg[:, None]
+
+            np.fill_diagonal(B, ar_coef)
+            
+            for ti in range(1, n):
+                X[ti, :] = B @ X[ti - 1, :] + epsilon[ti, :]
+
+            X = pd.DataFrame(X)
+        
+        
+        
+        elif structure == "GARCH":
+            if heavy_tailed:
+                epsilon = cauchy.rvs(size=(n, p))
+            else:
+                epsilon = norm.rvs(size=(n, p))
+
+            effect = 0.5
+
+            # A[i, k] = 1 if edge from k to i exists
+            A = np.zeros((p, p))
+            for source, target in true_graph.edges():
+                A[target, source] = 1
+            
+            for ti in range(1, n):
+                addition = (A @ (X[ti - 1, :] ** 2)) * effect
+                X[ti, :] = np.sqrt(0.1 + addition) * epsilon[ti, :]
+
+            X = pd.DataFrame(X)
+        
         else:
-            for i in range(p):
-                epsilon.iloc[:, i] = norm.rvs(size=n)
-       
-        if structure == 'VAR':
-            effect = 0.3
-            for j in range(2, n):
-                for i in range(p):
-                    addition = sum((true_graph.has_edge(k, i) * effect * x.iloc[j-1, k]) for k in range(p))
-                    x.iloc[j, i] = 0.3 * x.iloc[j-1, i] + addition + epsilon.iloc[j, i]
-       
-        elif structure == 'GARCH':
-            effect = 0.5 if not heavy_tailed else 5
-            for j in range(2, n):
-                for i in range(p):
-                    addition = sum((true_graph.has_edge(k, i) * effect * x.iloc[j-np.random.choice(range(1,2)), k]**2) for k in range(p))
-                    x.iloc[j, i] = (0.1 + addition)**0.5 * epsilon.iloc[j, i]
-       
-        return {'data': x, 'true_graph': true_graph}
+            raise ValueError("structure must be either 'VAR' or 'GARCH'")
+
+        return {"data": X, "true_graph": true_graph}
     
     tmp_seed = np.random.randint(int(1e6))
-    x = generate_data_with_possible_NA(n, p, structure, heavy_tailed, seed=tmp_seed)
-    while x['data'].iloc[n-1].isna().sum() != 0:
+    X = generate_data_internal(n=n, p=p, structure=structure, heavy_tailed=heavy_tailed, seed=tmp_seed)
+    trynm = 0
+    while X["data"].iloc[-1, :].isna().sum() != 0:
         tmp_seed = np.random.randint(int(1e6))
-        x = generate_data_with_possible_NA(n, p, structure, heavy_tailed, seed=tmp_seed)
-   
-    return {'data': x['data'], 'true_graph': x['true_graph']}
+        X = generate_data_internal(n=n, p=p, structure=structure, heavy_tailed=heavy_tailed, seed=tmp_seed)
+        # DEBUG CHECK: to be sure it is numerically stationary.
+        trynm += 1
+        if trynm > 100:
+            msg = f"Non-stationary DGP (n = {n}, p = {p}) -- Failed to generate valid data after 100 attempts."
+            print(msg)
+            # warnings.warn(msg)
+            raise RuntimeError(msg)
+
+    return {"data": X["data"], "true_graph": X["true_graph"]}
 
 
 
@@ -204,41 +241,6 @@ else:
     ht_str = 'light'
 
 
-# # Loop over all combinations of n and p
-# for n in n_values_cor:
-#     for p in p_values_cor:
-#         average_error = 0
-#         for _ in range(nb_sim_cor):
-#             average_error += PCMCI_RobustParCorr_one_simulation(n=n, p=p, structure = structure, heavy_tailed=heavy_tailed)
-#         results.append({'n': n, 'p': p, 'average_error': average_error/nb_sim_cor})
-# # Convert results to a DataFrame
-# results = pd.DataFrame(results)
-# results
-
-
-
-# # Loop over all combinations of n and p
-# for n in n_values_gpdc:
-#     for p in p_values_gpdc:
-#         average_error = 0
-#         for _ in range(nb_sim_gpdc):
-#             average_error += PCMCI_GPDC_one_simulation(n=n, p=p, structure = structure, heavy_tailed=heavy_tailed)
-#         results.append({'n': n, 'p': p, 'average_error': average_error/nb_sim_gpdc})
-# # Convert results to a DataFrame
-# results = pd.DataFrame(results)
-# results
-
-
-
-
-
-# structure = 'VAR'
-# heavy_tailed = True
-
-# Define the ranges for n and p
-# n_values_cor = [500, 5000]
-# p_values_cor = [2,4,7, 10, 20]
-# nb_sim_cor = 100
 
 print("Starting simulations for PCMCI with RobustParCorr...")
 
@@ -254,16 +256,7 @@ for n in n_values_cor:
             out = PCMCI_RobustParCorr_one_simulation(n=n, p=p, structure=structure, heavy_tailed=heavy_tailed)
             results_PCMCI_Cor.append({'n': n, 'p': p, 'replication': rep, 'distance': out})
 
-# # Or parallel loop using ProcessPoolExecutor
-# tasks = [(n, p, rep) for n in n_values_cor for p in p_values_cor for rep in range(1, nb_sim_cor + 1)]
 
-# def _run_pcmci_robustparcorr(task):
-#     n, p, rep = task
-#     out = PCMCI_RobustParCorr_one_simulation(n=n, p=p, structure=structure, heavy_tailed=heavy_tailed)
-#     return {'n': n, 'p': p, 'replication': rep, 'distance': out}
-
-# with ProcessPoolExecutor() as executor:
-#     results_PCMCI_Cor = list(executor.map(_run_pcmci_robustparcorr, tasks))
 
 # Convert results to a DataFrame
 results_PCMCI_Cor = pd.DataFrame.from_dict(results_PCMCI_Cor)
@@ -279,13 +272,6 @@ del results_PCMCI_Cor
 
 
 
-# structure = 'VAR'
-# heavy_tailed = True
-
-# Define the ranges for n and p
-# n_values_gpdc = [500]
-# p_values_gpdc = [2,4,7]
-# nb_sim_gpdc = 100
 
 print("Starting simulations for PCMCI with GPDC...")
 
@@ -301,16 +287,7 @@ for n in n_values_gpdc:
             out = PCMCI_GPDC_one_simulation(n=n, p=p, structure=structure, heavy_tailed=heavy_tailed)
             results_PCMCI_GPDC.append({'n': n, 'p': p, 'replication': rep, 'distance': out})
 
-# # Or parallel loop using ProcessPoolExecutor
-# tasks = [(n, p, rep) for n in n_values_gpdc for p in p_values_gpdc for rep in range(1, nb_sim_gpdc + 1)]
 
-# def _run_pcmci_gpdc(task):
-#     n, p, rep = task
-#     out = PCMCI_GPDC_one_simulation(n=n, p=p, structure=structure, heavy_tailed=heavy_tailed)
-#     return {'n': n, 'p': p, 'replication': rep, 'distance': out}
-
-# with ProcessPoolExecutor() as executor:
-#     results_PCMCI_GPDC = list(executor.map(_run_pcmci_gpdc, tasks))
 
 # Convert results to a DataFrame
 results_PCMCI_GPDC = pd.DataFrame.from_dict(results_PCMCI_GPDC)
@@ -324,14 +301,14 @@ results_PCMCI_GPDC
 del results_PCMCI_GPDC
 
 
+
+
 script_end_time = time.perf_counter()
 tot_exec_time = script_end_time - script_start_time
 print(f"Script execution time: {tot_exec_time/3600:.2f} hours ({tot_exec_time/60:.2f} minutes).")
 # write time to a file
 with open(f'{results_folder}execution_time_PCMCI_{structure}_{ht_str}.txt', 'w') as f:
     f.write(f"Script execution time: {tot_exec_time/3600:.2f} hours ({tot_exec_time/60:.2f} minutes). \n")
-
-
 
 
 
@@ -352,9 +329,5 @@ with open(f'{results_folder}execution_time_PCMCI_{structure}_{ht_str}.txt', 'w')
 # end_time = time.time()
 
 # end_time - start_time
-
-
-# time.sleep(300)
-# os.system('shutdown -s -t 0')
 
 

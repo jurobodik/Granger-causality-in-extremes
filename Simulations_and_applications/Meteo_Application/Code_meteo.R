@@ -19,7 +19,7 @@ library(zoo)
 
 data_folder <- "./data/Meteo_Application/"
 results_folder <- "./Results/Meteo_Application/"
-precip_station <- "AIR" # the name of the station where precipitation was measured. (eg AIR AUB BAU) The 'confounders' are close to AIR.
+precip_station <- "AIR" # the name of the station where precipitation was measured (eg AIR AUB BAU). The 'confounders' are close to AIR.
 
 
 ## Part 1: Data import
@@ -79,18 +79,18 @@ Extreme_causality_test(x, y, z = z, p_value_computation = FALSE, both_tails = FA
 Extreme_causality_test(y, x, z = z, p_value_computation = FALSE, both_tails = FALSE)
 
 # If you want to change lag or change the adjustment for confounding or consider also instantenius causality, change some hyperparameters
-lag_future <- 1
-lag_past <- 0
+max_causal_lag <- 1
+max_confounder_lag <- 0
 nu_x <- 0.3
 q_y <- 0.2
 q_z <- 0.1
 instant <- FALSE
 
-Extreme_causality_test(x, y, z = z, nu_x = nu_x, q_y = q_y, q_z = q_z, lag_future = lag_future, lag_past = lag_past, instant = instant, p_value_computation = FALSE, both_tails = FALSE)
-Extreme_causality_test(y, x, z = z, nu_x = nu_x, q_y = q_y, q_z = q_z, lag_future = lag_future, lag_past = lag_past, instant = instant, p_value_computation = FALSE, both_tails = FALSE)
+Extreme_causality_test(x, y, z = z, nu_x = nu_x, q_y = q_y, q_z = q_z, max_causal_lag = max_causal_lag, max_confounder_lag = max_confounder_lag, instant = instant, p_value_computation = FALSE, both_tails = FALSE)
+Extreme_causality_test(y, x, z = z, nu_x = nu_x, q_y = q_y, q_z = q_z, max_causal_lag = max_causal_lag, max_confounder_lag = max_confounder_lag, instant = instant, p_value_computation = FALSE, both_tails = FALSE)
 
-Extreme_causality_test(x, y, z = z, nu_x = nu_x, q_y = q_y, q_z = q_z, lag_future = lag_future, lag_past = lag_past, instant = instant, p_value_computation = TRUE, both_tails = FALSE)
-Extreme_causality_test(y, x, z = z, nu_x = nu_x, q_y = q_y, q_z = q_z, lag_future = lag_future, lag_past = lag_past, instant = instant, p_value_computation = TRUE, both_tails = FALSE)
+Extreme_causality_test(x, y, z = z, nu_x = nu_x, q_y = q_y, q_z = q_z, max_causal_lag = max_causal_lag, max_confounder_lag = max_confounder_lag, instant = instant, p_value_computation = TRUE, both_tails = FALSE)
+Extreme_causality_test(y, x, z = z, nu_x = nu_x, q_y = q_y, q_z = q_z, max_causal_lag = max_causal_lag, max_confounder_lag = max_confounder_lag, instant = instant, p_value_computation = TRUE, both_tails = FALSE)
 
 
 
