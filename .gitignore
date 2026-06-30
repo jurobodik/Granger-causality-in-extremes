@@ -8,12 +8,12 @@ data/*/tmp/
 
 # Results
 Results/*
-!Results/Simulations_comparison/tables/
-!Results/Simulations_comparison/plots/
-!Results/Simulations_hyperparameters/
-!Results/Crypto_Application/graph_saves/
-!Results/Crypto_Application/figures/
-!Results/Meteo_Application/
+!Results/Simulations_comparison/tables/*
+!Results/Simulations_comparison/plots/*
+!Results/Simulations_hyperparameters/*
+!Results/Crypto_Application/graph_saves/*
+!Results/Crypto_Application/figures/*
+!Results/Meteo_Application/*
 
 # History files
 .Rhistory
