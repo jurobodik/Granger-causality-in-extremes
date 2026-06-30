@@ -6,9 +6,14 @@ deprecated/
 data/Meteo_Application/
 data/*/tmp/
 
-# temporary
-Results/Simulations_comparison/tables/*
+# Results
 Results/*
+!Results/Simulations_comparison/tables/
+!Results/Simulations_comparison/plots/
+!Results/Simulations_hyperparameters/
+!Results/Crypto_Application/graph_saves/
+!Results/Crypto_Application/figures/
+!Results/Meteo_Application/
 
 # History files
 .Rhistory
