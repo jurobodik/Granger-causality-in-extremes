@@ -2,8 +2,9 @@
 # This script creates the final comparative plot.
 # It uses the results output for each alternative method by the corresponding scripts.
 
-source("./R/Main_functions.R")
+# library(ExtremeGranger)
 source("./R/utils.R")
+
 library(EnvStats)
 library(ExtremeRisks)
 library(igraph)

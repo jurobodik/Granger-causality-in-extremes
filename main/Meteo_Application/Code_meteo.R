@@ -1,7 +1,10 @@
 # Meteorological application for the paper 'Granger causality in extremes'
 
-# main function needed to be uploaded for this application is 'Extreme_causality_test' - this function can be found in the main file
-source("./R/Main_functions.R")
+# (Install and) load v0.1.0 of the ExtremeGranger R package
+# devtools::install_github("opasche/ExtremeGranger@v0.1.0")
+library(ExtremeGranger)
+# source("./R/Main_functions_localcopy.R")
+
 source("./R/utils.R")
 
 # Part 1: Data import. Note that the data can be accessed through hydrodaten.admin.ch and gate.meteoswiss.ch/idaweb after registration or by requesting the used data from the authors of Pasche et al.(2022). I do not have a permission to share them
@@ -14,8 +17,11 @@ source("./R/utils.R")
 # Longitude: 8.6049
 # Elevation	1139
 
+
+# Other packages used in the analysis
 library(readxl)
 library(zoo)
+
 
 data_folder <- "./data/Meteo_Application/"
 results_folder <- "./Results/Meteo_Application/"

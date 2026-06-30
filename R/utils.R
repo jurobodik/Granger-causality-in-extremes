@@ -9,7 +9,7 @@
 #' If `TRUE`, behaves like the Unix command `mkdir -p`.
 #' @param no_warning Whether to cancel the warning issued if a directory is created (bool).
 #'
-#' @export
+#' @keywords internal
 #'
 #' @examples \dontrun{check_directory("./results/my_new_folder")}
 check_directory <- function(dir_name, recursive=TRUE, no_warning=FALSE){
@@ -33,7 +33,7 @@ check_directory <- function(dir_name, recursive=TRUE, no_warning=FALSE){
 #' If `TRUE`, behaves like the Unix command `mkdir -p`.
 #' @param no_warning Whether to cancel the warning issued if a directory is created (bool).
 #'
-#' @export
+#' @keywords internal
 #'
 #' @examples \dontrun{safe_save_rds(c(1, 2, 8), "./results/my_new_folder/my_vector.rds")}
 safe_save_rds <- function(object, file_path, recursive=TRUE, no_warning=FALSE){
@@ -54,10 +54,11 @@ safe_save_rds <- function(object, file_path, recursive=TRUE, no_warning=FALSE){
 #' @return Returns the appropriate operator to use in a [foreach::foreach()] loop.
 #' The \code{\link[foreach]{\%do\%}} operator is returned if `strategy=="sequential"`.
 #' Otherwise, the \code{\link[foreach]{\%dopar\%}} operator is returned.
-#' @export
 #' @importFrom foreach %do% %dopar%
 #'
-#' @examples `%fun%` <- get_doFuture_operator("sequential")
+#' @keywords internal
+#'
+#' @examples `%fun%` <- get_doFuture_operator_deprecated("sequential")
 get_doFuture_operator_deprecated <- function(strategy=c("sequential", "multisession", "multicore", "mixed")){
   
   strategy <- match.arg(strategy)
@@ -80,11 +81,12 @@ get_doFuture_operator_deprecated <- function(strategy=c("sequential", "multisess
 #' Defaults to [future::availableCores()]`-1` if `NULL` (default), with `"multicore"` constraint in the relevant case.
 #' Ignored if `strategy=="sequential"`.
 #'
-#' @return The corresponding [get_doFuture_operator()] operator to use in a [foreach::foreach()] loop.
-#' @export
+#' @return The `%dofuture%` operator from the `doFuture` package to use in a [foreach::foreach()] loop.
 #' @importFrom foreach %do% %dopar%
 #' @importFrom future availableCores plan sequential multisession multicore tweak
-#' @importFrom doFuture registerDoFuture
+#' @importFrom doFuture registerDoFuture %dofuture%
+#'
+#' @keywords internal
 #'
 #' @examples \dontrun{
 #' `%fun%` <- set_doFuture_strategy("multisession", n_workers=3)
@@ -128,8 +130,9 @@ set_doFuture_strategy <- function(strategy=c("sequential", "multisession", "mult
 #'
 #' @description Resets the default strategy using `future::plan("default")`.
 #'
-#' @export
 #' @importFrom future plan
+#'
+#' @keywords internal
 #'
 #' @examples \dontrun{
 #' `%fun%` <- set_doFuture_strategy("multisession", n_workers=3)

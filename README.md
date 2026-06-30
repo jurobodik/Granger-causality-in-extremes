@@ -1,61 +1,58 @@
-# Welcome to the Granger Causality in Extremes Repository!
+# Welcome to the Granger causality in extremes repository!
 
-You can find the manuscript called 'Granger Causality in Extremes' on ArXiv at https://arxiv.org/abs/2407.09632 . This repository also contains (extensions of) methods from https://github.com/jurobodik/Causality-in-extremes-of-time-series. 
+This repository contains the code to reproduce the results of the manuscript 'Granger Causality in Extremes' by Juraj Bodik and Olivier C. Pasche, available on ArXiv at <https://arxiv.org/abs/2407.09632>. 
 For any questions or error reports, please contact [juraj.bodik@unil.ch](mailto:juraj.bodik@unil.ch).
 
 ## Overview
-This repository contains two main functions: `Extreme_causality_test` and `Extreme_causality_graph`. Both functions are defined in the file `./R/Main_functions.R`.
 
-## Extreme_causality_test
+### ExtremeGranger R package
 
-This function tests whether the tails/extremes of time series `X` cause those of time series `Y`, given confounders `Z`.
-
-### Function Inputs:
-- **x**: A numeric vector representing the first time series (potential cause).
-- **y**: A numeric vector representing the second time series (potential effect).
-- **z**: A data.frame of potential confounders. Set to NULL if there are no confounders.
-- **max_causal_lag**: The time delay for the effect from `x` to `y`. This is the coefficient $p$ in Appendix A of the manuscript.
-- **p_value_computation**: If `p_value_computation=FALSE` it returns the output based on (fast) Algorithm 1.  If `p_value_computation=TRUE` it computes the p-value for the hypothesis $H_0: X \text{ does not cause } Y \text{ in extremes given } Z$. If `p_value < 0.05`, we conclude that $X$ causes $Y$ given $Z$. 
-- **bootstrap_repetitions**: The number of bootstrap repetitions for p-value computation. More repetitions yield more precise p-values but require longer computation time.
-- **both_tails**: Set to TRUE to consider both large and extremely negative values. For example, in GARCH models, both tails are of interest, while in VAR models, only large values might be relevant.
-- **nu_x**: The coefficient $\tau_X$ or $k_n$ in the manuscript, defined as $k_n = \lfloor n^{\nu_x} \rfloor$. If strong hidden confounding is expected, set $\nu_x$ to 0.4 or 0.5.
-- **q_y**: The coefficient $\tau_y = q_y \times n$, describing the conditioning on $Y_t$. For large auto-correlation in $Y$, set $q_y$ to 0.1 or less. Note that in the manuscript, $q_y$ is defined as $1 - q_y$.
-- **q_z**: The coefficient $\tau_z = q_z \times n$, describing the conditioning on $Z_t$. This is irrelevant if $Z$ is NULL. For strong confounding effects, set $q_z$ to 0.2 or 0.3. Note that in the manuscript, $q_z$ is defined as $1 - q_z$.
-- **max_confounder_lag**: The lag from $Z$ to $(X, Y)$. If the common cause has different lags to $X$ and $Y$, it may cause spurious causality between $X$ and $Y$. Ensure `max_confounder_lag` is larger than this lag.
-
-### Function Outputs:
-- **output**: Either 'Evidence of causality' or 'No causality' based on Algorithm 1 from the manuscript.
-- **p_value_tail**: This is not shown if `p_value_computation` is FALSE. Rejection indicates evidence of causality in the tail. It corresponds to the p-value for the hypothesis $H_0: X \text{ does not cause } Y \text{ in the tail given } Z$, based on bootstrapping. Often `p-value = 1` which means that $\text{CTC} < \text{baseline}$.
-- **p_value_extreme**: This is not shown if `p_value_computation` is FALSE. Rejection indicates evidence of causality in extremes. It corresponds to the p-value for the hypothesis $\hat{\Gamma}< (1 +3 \hat{\Gamma}^{baseline})/4$.
-- **CTC**: The coefficient $\hat{\Gamma}_{X \rightarrow Y | Z}$.
-- **baseline**: The baseline coefficient $\hat{\Gamma}^{\text{baseline}}_{X \rightarrow Y | Z}$.
-
-## Extreme_causality_graph
-
-This function estimates the causal graph (path diagram) between a set of time series.
-
-### Function Inputs:
-- **w**: A data.frame of all time series, which should be numeric and of the same length.
-- **max_causal_lag**: Same as in `Extreme_causality_test`.
-- **both_tails**: Same as in `Extreme_causality_test`.
-- **nu_x**: Same as in `Extreme_causality_test`.
-- **q_y**: Same as in `Extreme_causality_test`.
-- **q_z**: Same as in `Extreme_causality_test`.
-- **max_confounder_lag**: Same as in `Extreme_causality_test`.
-- **p_value_based**: if FALSE, we use Algorithm 1 for inferring the edges. If TRUE, we use the testing procedure with a cut-off p-value of 0.05 for detecting the presence of an edge. These procedures typically output very similar results, but the testing procedure is very slow. 
-
-### Function Outputs:
-- **G$G**: A graph defined by its edges. Each row corresponds to an edge from the first column pointing to the second column. Use `graph <- graph_from_edgelist(G$G)` from the `igraph` library to obtain the graph environment.
-- **G$weights**: Weights corresponding to each edge, representing how close the coefficient $\hat{\Gamma}$ is to 1. If $\hat{\Gamma}_{X \rightarrow Y | Z} = 1$, the weight is 1. The weight is 0 if $\hat{\Gamma} = \left(1 + \hat{\Gamma}^{\text{baseline}}\right) / 2$.
-
-## Example Usage
+The methods introduced in the paper are implemented as an open-source `ExtremeGranger` R package, available at <https://github.com/opasche/ExtremeGranger>. 
+For more details, see its documentation website at <https://opasche.github.io/ExtremeGranger/>. 
+To reproduce the results from the manuscript, please install version `0.1.0` of the package, using the following command in R:
 
 ```r
-library(igraph)   # For visualizing the final graph estimates
-library(EnvStats) # Or any other package that can generate Pareto noise
+# install.packages("devtools")
+devtools::install_github("opasche/ExtremeGranger@v0.1.0")
+```
+
+The main functions of the package are `Extreme_causality_test` and `Extreme_causality_graph` (and its parallelized version `Extreme_causality_graph_parallel`). 
+
+* The `Extreme_causality_test` function tests whether the tails/extremes of time series `X` cause those of time series `Y`, given confounders `Z`. See [its documentation](https://opasche.github.io/ExtremeGranger/reference/Extreme_causality_test.html) for details on the inputs and outputs.
+* The `Extreme_causality_graph` function estimates the causal graph (path diagram) between a set of time series. (See [its documentation](https://opasche.github.io/ExtremeGranger/reference/Extreme_causality_graph.html)).
+* The `Extreme_causality_graph_parallel` does the same, but using `doFuture` parallelization. (See [its documentation](https://opasche.github.io/ExtremeGranger/reference/Extreme_causality_graph_parallel.html)).
+
+A local copy of those functions is also available at `./R/Main_functions_localcopy.R`, which can be used without installing the package, as a redundancy backup.  
+
+### Repository contents
+
+The rest of the repository is organized as follows:
+
+* The folder `./main/` contains the code to reproduce the results of the manuscript, in the respective subfolders.
+* Results from these scripts are output in the respective `./Results/` subfolders.
+* The `./R/` folder contains the R functions used in the `./main/` scripts, as well as a local copy of the package functions, as described above.
+* The `./data/Crypto_Application/` folder contains the data used in the Cryptocurrency application. 
+The river and meteorological data should is expected in the `./data/Meteo_Application/` folder, but is not included in the repository, due to copyright reasons. 
+Please follow instructions in the manuscript to obtain them.
+
+
+## Example usage of the ExtremeGranger package
+
+Here is a usage example with a 4-dimensional toy VAR time series with `lag = 2`.
+
+```r
+# (Install and) load v0.1.0 of the ExtremeGranger R package
+# # install.packages("devtools")
+# devtools::install_github("opasche/ExtremeGranger@v0.1.0")
+library(ExtremeGranger)
+
+# Load EnvStats for the example (or any other package that can generate Pareto noise)
+library(EnvStats) 
 
 # Example: Generating a 4-dimensional VAR time series with lag = 2
 n <- 5000
+
+set.seed(0) # for reproducibility
 epsilon_x <- rpareto(n, 1, 1)
 epsilon_y <- rpareto(n, 1, 1)
 epsilon_z1 <- rpareto(n, 1, 1)
@@ -72,18 +69,33 @@ for (i in 3:n) {
   y[i] <- 0.5 * y[i - 1] + 0.5 * z1[i - 1] + 0.5 * z2[i - 2] + 0.2 * x[i - 1] + epsilon_y[i]
 }
 
-z <- data.frame(z1, z2)
-w <- data.frame(z1, z2, x, y)
-
 # Running the extreme causality tests
-Extreme_causality_test(x, y, z, max_causal_lag = 2, p_value_computation = FALSE)
-Extreme_causality_test(y, x, z, max_causal_lag = 2, p_value_computation = FALSE)
+z <- data.frame(z1, z2)
+result_xy <- Extreme_causality_test(x, y, z, max_causal_lag = 2, p_value_computation = FALSE)
+result_yx <- Extreme_causality_test(y, x, z, max_causal_lag = 2, p_value_computation = FALSE)
 
 # Estimating the full causality graph
+w <- data.frame(z1, z2, x, y)
 G <- Extreme_causality_graph(w, max_causal_lag = 2)  # Try it out also with lag = 1. You will see that the lagged edges disappear
+```
 
-# Visualizing the graph using igraph package
+One can then use, for example, the `igraph` package for plotting the estimated graph.
+
+```r
+# Visualizing the final graph estimate using the igraph package
+library(igraph)
+
 graph <- graph_from_edgelist(G$G)
 V(graph)$name <- names(w)
-plot(graph, layout = layout_nicely(graph), vertex.label = V(graph)$name)
+plot.igraph(
+  graph, 
+  layout = layout_nicely(graph), 
+  vertex.label = V(graph)$name,
+  margin = c(0, 0, 0, 0),
+  vertex.color = "white",
+  vertex.label.color = "black",
+  vertex.size = 30,
+  edge.color = "black"
+)
+```
 

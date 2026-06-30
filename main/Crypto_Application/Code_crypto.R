@@ -1,8 +1,13 @@
 # Crypto-Stock application of Granger causality in extremes
 
-source("./R/Main_functions.R")
-# source("./R/old_Main_functions_Juraj.R")
+# (Install and) load v0.1.0 of the ExtremeGranger R package
+# devtools::install_github("opasche/ExtremeGranger@v0.1.0")
+library(ExtremeGranger)
+# source("./R/Main_functions_localcopy.R")
+
 source("./R/utils.R")
+
+# Other packages used in the analysis
 library(EnvStats)
 library(readxl)
 library(knitr)
