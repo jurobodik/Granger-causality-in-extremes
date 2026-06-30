@@ -99,3 +99,8 @@ plot.igraph(
 )
 ```
 
+
+## References
+
+Bodik, J. and Pasche, O. C. (2024). "Granger Causality in Extremes." *ArXiv Preprint* 2407.09632. [doi:10.48550/arXiv.2407.09632](https://doi.org/10.48550/arXiv.2407.09632).
+
